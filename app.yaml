@@ -1,0 +1,44 @@
+name: banmarchive
+services:
+- name: server
+  github:
+    repo: commonknowledge/banmarchive
+    branch: main
+    deploy_on_push: true
+  dockerfile_path: Dockerfile
+  run_command: gunicorn banmarchive.wsgi:application
+  envs:
+  - key: BASE_URL
+    value: ${_self.PUBLIC_URL}
+    scope: RUN_AND_BUILD_TIME
+jobs:
+- name: migrate
+  kind: PRE_DEPLOY
+  github:
+    repo: commonknowledge/banmarchive
+    branch: main
+    deploy_on_push: true
+  dockerfile_path: Dockerfile
+  run_command: python manage.py migrate
+static_sites:
+- name: static
+  github:
+    repo: commonknowledge/banmarchive
+    branch: main
+    deploy_on_push: true
+  output_dir: /app/static
+  dockerfile_path: Dockerfile
+  routes:
+  - path: /static
+databases:
+- name: db
+  engine: PG
+  version: "12"
+envs:
+- key: DATABASE_URL
+  value: "${db.DATABASE_URL}"
+  scope: RUN_AND_BUILD_TIME
+- key: SECRET_KEY
+  value: "EV[1:Y93Blszl0Bq0brwIr6lI2LZQbmaEknts:wBEkPlST3zxzg6WjtbzWHFzPfRZpligJxQaXhZWg/Wfywt95qVai5IeRyUCfhrjto3K7beRR+C0VtrxOdH5njhgN6L3gCkrMdprptA2G4mM=]"
+  scope: RUN_AND_BUILD_TIME
+  type: SECRET

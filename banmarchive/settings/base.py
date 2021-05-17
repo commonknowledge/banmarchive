@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'modelcluster',
     'taggit',
 
+    'django.contrib.gis',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -91,17 +92,18 @@ WSGI_APPLICATION = 'banmarchive.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.parse(
-        re.sub(
-            r"^postgres",
-            "postgis",
-            os.getenv('DATABASE_URL')
-        ),
-        conn_max_age=600,
-        ssl_require=False
-    )
-}
+if os.getenv('SKIP_DB') != '1':
+    DATABASES = {
+        'default': dj_database_url.parse(
+            re.sub(
+                r"^postgres(ql)?",
+                "postgis",
+                os.getenv('DATABASE_URL')
+            ),
+            conn_max_age=600,
+            ssl_require=False
+        )
+    }
 
 
 # Password validation

@@ -12,6 +12,7 @@ django-treebeard==4.5.1
 djangorestframework==3.12.4
 draftjs-exporter==2.1.7
 et-xmlfile==1.1.0
+gunicorn==20.1.0
 html5lib==1.1
 idna==2.10
 l18n==2020.6.1
