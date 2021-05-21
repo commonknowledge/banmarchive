@@ -1,44 +1,74 @@
-name: banmarchive
-services:
-- name: server
-  github:
-    repo: commonknowledge/banmarchive
-    branch: main
-    deploy_on_push: true
-  dockerfile_path: Dockerfile
-  run_command: gunicorn banmarchive.wsgi:application
-  envs:
-  - key: BASE_URL
-    value: ${_self.PUBLIC_URL}
-    scope: RUN_AND_BUILD_TIME
-jobs:
-- name: migrate
-  kind: PRE_DEPLOY
-  github:
-    repo: commonknowledge/banmarchive
-    branch: main
-    deploy_on_push: true
-  dockerfile_path: Dockerfile
-  run_command: python manage.py migrate
-static_sites:
-- name: static
-  github:
-    repo: commonknowledge/banmarchive
-    branch: main
-    deploy_on_push: true
-  output_dir: /app/static
-  dockerfile_path: Dockerfile
-  routes:
-  - path: /static
 databases:
-- name: db
-  engine: PG
-  version: "12"
+  - engine: PG
+    name: db
+    version: "12"
+domains:
+  - domain: next.banmarchive.org.uk
+    type: PRIMARY
 envs:
-- key: DATABASE_URL
-  value: "${db.DATABASE_URL}"
-  scope: RUN_AND_BUILD_TIME
-- key: SECRET_KEY
-  value: "EV[1:Y93Blszl0Bq0brwIr6lI2LZQbmaEknts:wBEkPlST3zxzg6WjtbzWHFzPfRZpligJxQaXhZWg/Wfywt95qVai5IeRyUCfhrjto3K7beRR+C0VtrxOdH5njhgN6L3gCkrMdprptA2G4mM=]"
-  scope: RUN_AND_BUILD_TIME
-  type: SECRET
+  - key: DATABASE_URL
+    scope: RUN_AND_BUILD_TIME
+    value: ${db.DATABASE_URL}
+  - key: SECRET_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:Y93Blszl0Bq0brwIr6lI2LZQbmaEknts:wBEkPlST3zxzg6WjtbzWHFzPfRZpligJxQaXhZWg/Wfywt95qVai5IeRyUCfhrjto3K7beRR+C0VtrxOdH5njhgN6L3gCkrMdprptA2G4mM=]
+jobs:
+  - dockerfile_path: Dockerfile
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: commonknowledge/banmarchive
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    kind: PRE_DEPLOY
+    name: migrate
+    run_command: python manage.py migrate
+name: banmarchive
+region: ams
+services:
+  - dockerfile_path: Dockerfile
+    envs:
+      - key: BASE_URL
+        scope: RUN_AND_BUILD_TIME
+        value: ${_self.PUBLIC_URL}
+      - key: AWS_S3_REGION_NAME
+        scope: RUN_AND_BUILD_TIME
+        value: ams3
+      - key: AWS_STORAGE_BUCKET_NAME
+        scope: RUN_AND_BUILD_TIME
+        value: banmarchive
+      - key: AWS_S3_ENDPOINT_URL
+        scope: RUN_AND_BUILD_TIME
+        value: https://ams3.digitaloceanspaces.com
+      - key: AWS_ACCESS_KEY_ID
+        scope: RUN_AND_BUILD_TIME
+        value: E7ZJKB376BMRU4CEE3IQ
+      - key: AWS_SECRET_ACCESS_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+        value: EV[1:toBCiblrWWWcy896zWGF8xUYqIno4gd3:0M2oBeyGIcsae1MdQnRTD7JQOJJXv64DtyGci7Z4PU4z+oz24o9zYavzTLTPOAK1AUvb+H9li0iBZaA=]
+      - key: MEDIA_URL
+        scope: RUN_AND_BUILD_TIME
+        value: https://banmarchive.ams3.cdn.digitaloceanspaces.com/
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: commonknowledge/banmarchive
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    name: server
+    routes:
+      - path: /
+    run_command: gunicorn --worker-tmp-dir /dev/shm banmarchive.wsgi
+static_sites:
+  - dockerfile_path: Dockerfile
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: commonknowledge/banmarchive
+    name: static
+    output_dir: /app/static
+    routes:
+      - path: /static
