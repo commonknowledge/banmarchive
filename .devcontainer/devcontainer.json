@@ -35,9 +35,6 @@
 		"python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
 		"python.testing.pytestPath": "/usr/local/py-utils/bin/pytest"
 	},
-	"remoteEnv": {
-		"DATABASE_URL": "postgres://postgres:postgres@postgres:5432/postgres"
-	},
 
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
@@ -50,7 +47,7 @@
 	// "forwardPorts": [5000, 5432],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "pip install --user -r requirements.txt",
+	"postCreateCommand": "bash scripts/install.sh",
 
 	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode"

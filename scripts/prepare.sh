@@ -1,5 +1,8 @@
+set -e
+
 apt-get update -y
 apt-get install --yes --quiet --no-install-recommends \
+    curl \
     build-essential \
     libpq-dev \
     libmariadbclient-dev \
@@ -9,3 +12,5 @@ apt-get install --yes --quiet --no-install-recommends \
     binutils \
     libproj-dev \
     gdal-bin
+
+npm i -g yarn

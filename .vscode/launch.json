@@ -13,6 +13,28 @@
         "runserver"
       ],
       "django": true
+    },
+    {
+      "name": "Webpack",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/.bin/webpack",
+      "args": [
+          "serve",
+          "--hot",
+          "--progress"
+      ],
+      "console": "internalConsole",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+  ],
+  "compounds": [
+    {
+      "name": "App",
+      "configurations": [
+        "Python: Django",
+        "Webpack"
+      ],
     }
   ]
 }
