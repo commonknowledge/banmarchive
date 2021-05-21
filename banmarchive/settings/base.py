@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'modelcluster',
     'taggit',
     'webpack_loader',
+    "anymail",
 
     'django.contrib.gis',
     'django.contrib.admin',

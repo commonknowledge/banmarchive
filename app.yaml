@@ -51,6 +51,16 @@ services:
       - key: MEDIA_URL
         scope: RUN_AND_BUILD_TIME
         value: https://banmarchive.ams3.cdn.digitaloceanspaces.com/
+      - key: MAILGUN_API_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+        value: EV[1:TJ+lHp2HANIeIFoybMZJsdo+Xp5IRaJr:q4Sl6JHTH3JanXw40+h5ZLBwR2fTl8Iruwy6PQ1RZ0VSS9UXBakp9XDZoOYaWtWbdNGevk8iSXOYVMC9CBafYjZB]
+      - key: MAILGUN_API_URL
+        scope: RUN_AND_BUILD_TIME
+        value: https://api.eu.mailgun.net/v3
+      - key: MAILGUN_SENDER_DOMAIN
+        scope: RUN_AND_BUILD_TIME
+        value: commonknowledge.dev
     github:
       branch: main
       deploy_on_push: true

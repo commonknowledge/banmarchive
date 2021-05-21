@@ -16,6 +16,18 @@ AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 MEDIA_URL = os.getenv('MEDIA_URL')
 
+ANYMAIL = {
+    "MAILGUN_API_KEY": os.getenv('MAILGUN_API_KEY'),
+    "MAILGUN_SENDER_DOMAIN": os.getenv('MAILGUN_SENDER_DOMAIN')
+}
+# or sendgrid.EmailBackend, or...
+EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
+# if you don't already have this in settings
+DEFAULT_FROM_EMAIL = f"noreply@{ANYMAIL['MAILGUN_SENDER_DOMAIN']}"
+# ditto (default from-email for Django errors)
+SERVER_EMAIL = f"admin@{ANYMAIL['MAILGUN_SENDER_DOMAIN']}"
+
+
 try:
     from .local import *
 except ImportError:
