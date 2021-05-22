@@ -3,7 +3,7 @@ databases:
     name: db
     version: "12"
 domains:
-  - domain: next.banmarchive.org.uk
+  - domain: banmarchive.commonknowledge.dev
     type: PRIMARY
 envs:
   - key: DATABASE_URL

@@ -40,7 +40,8 @@ RUN SKIP_MIGRATE=1 bash scripts/install.sh
 ENV PYTHONUNBUFFERED=1 \
     PORT=80 \
     DJANGO_SETTINGS_MODULE=banmarchive.settings.production \
-    NODE_ENV=production
+    NODE_ENV=production \
+    PATH=/home/wagtail/.local/bin:$PATH
 
 RUN bash scripts/build.sh
 
