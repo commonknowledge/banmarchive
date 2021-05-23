@@ -1,7 +1,5 @@
-databases:
-  - engine: PG
-    name: db
-    version: "12"
+name: banmarchive
+region: ams
 domains:
   - domain: banmarchive.commonknowledge.dev
     type: PRIMARY
@@ -12,23 +10,43 @@ envs:
   - key: SECRET_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:Y93Blszl0Bq0brwIr6lI2LZQbmaEknts:wBEkPlST3zxzg6WjtbzWHFzPfRZpligJxQaXhZWg/Wfywt95qVai5IeRyUCfhrjto3K7beRR+C0VtrxOdH5njhgN6L3gCkrMdprptA2G4mM=]
+    value: EV[1:nqAWJXElIRuXUIta/nm3SFIXDAAFRaY0:Fxf2ZZ+zc5G/Mym1dGkUiPwz/hJbD3HyAtWXzhOtWeQkrTX1g+ytZ3f/YHcpcNsnt7tST91Wav3VwILS0wPmfCswhW0Rqqwb3H+e9aBO7aE=]
 jobs:
-  - dockerfile_path: Dockerfile
+  - name: release
     github:
-      branch: main
-      deploy_on_push: true
       repo: commonknowledge/banmarchive
+      branch: main
+      deploy_on_push: false
+    dockerfile_path: .do/web.dockerfile
     instance_count: 1
     instance_size_slug: basic-xxs
     kind: PRE_DEPLOY
-    name: migrate
-    run_command: python manage.py migrate
-name: banmarchive
-region: ams
+    run_command: bash .bin/release.sh
+static_sites:
+  - name: staticfiles
+    github:
+      repo: commonknowledge/banmarchive
+      branch: main
+      deploy_on_push: false
+    dockerfile_path: .do/static.dockerfile
+    output_dir: /app/static
+    routes:
+      - path: /static/
 services:
-  - dockerfile_path: Dockerfile
+  - github:
+      repo: commonknowledge/banmarchive
+      branch: main
+      deploy_on_push: false
+    dockerfile_path: .do/web.dockerfile
     envs:
+      - key: AWS_SECRET_ACCESS_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+        value: EV[1:UODShe2skLp0NgK9aOOCeYX2RlJpJSwM:/W+ErZde+9JjvwVUcEClCKFHa0JukYCZX27rJ48br+uXfaV/35DlyESGvuYThYPmglItC8mLLHl0UgY=]
+      - key: MAILGUN_API_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+        value: EV[1:rWtVG/LT8IzgUhRORiFSHxvzgahml62Y:ssG1hhzZgGvvCTFcT8C2Exey5EgCRyYv3zbgfp0xAVNYwWu8nmBXs7MH+pvUOdBMw26EPumQjrPQI6N6AMjghbqs]
       - key: BASE_URL
         scope: RUN_AND_BUILD_TIME
         value: ${_self.PUBLIC_URL}
@@ -43,28 +61,16 @@ services:
         value: https://ams3.digitaloceanspaces.com
       - key: AWS_ACCESS_KEY_ID
         scope: RUN_AND_BUILD_TIME
-        value: E7ZJKB376BMRU4CEE3IQ
-      - key: AWS_SECRET_ACCESS_KEY
-        scope: RUN_AND_BUILD_TIME
-        type: SECRET
-        value: EV[1:toBCiblrWWWcy896zWGF8xUYqIno4gd3:0M2oBeyGIcsae1MdQnRTD7JQOJJXv64DtyGci7Z4PU4z+oz24o9zYavzTLTPOAK1AUvb+H9li0iBZaA=]
+        value: OQPXF34TDQBI7HARX6DE
       - key: MEDIA_URL
         scope: RUN_AND_BUILD_TIME
         value: https://banmarchive.ams3.cdn.digitaloceanspaces.com/
-      - key: MAILGUN_API_KEY
-        scope: RUN_AND_BUILD_TIME
-        type: SECRET
-        value: EV[1:TJ+lHp2HANIeIFoybMZJsdo+Xp5IRaJr:q4Sl6JHTH3JanXw40+h5ZLBwR2fTl8Iruwy6PQ1RZ0VSS9UXBakp9XDZoOYaWtWbdNGevk8iSXOYVMC9CBafYjZB]
       - key: MAILGUN_API_URL
         scope: RUN_AND_BUILD_TIME
         value: https://api.eu.mailgun.net/v3
       - key: MAILGUN_SENDER_DOMAIN
         scope: RUN_AND_BUILD_TIME
         value: commonknowledge.dev
-    github:
-      branch: main
-      deploy_on_push: true
-      repo: commonknowledge/banmarchive
     http_port: 8080
     instance_count: 1
     instance_size_slug: basic-xxs
@@ -72,13 +78,7 @@ services:
     routes:
       - path: /
     run_command: gunicorn --worker-tmp-dir /dev/shm banmarchive.wsgi
-static_sites:
-  - dockerfile_path: Dockerfile
-    github:
-      branch: main
-      deploy_on_push: true
-      repo: commonknowledge/banmarchive
-    name: static
-    output_dir: /app/static
-    routes:
-      - path: /static
+databases:
+  - engine: PG
+    name: db
+    version: "12"

@@ -24,24 +24,23 @@ RUN apt-get install -y curl
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash
 RUN apt-get install -y nodejs
 
-COPY scripts/prepare.sh /app/scripts/prepare.sh
-RUN bash /app/scripts/prepare.sh
+COPY .bin/prepare.sh /app/.bin/prepare.sh
+RUN bash /app/.bin/prepare.sh
 
 # Copy the source code of the project into the container.
-COPY --chown=wagtail:wagtail . .
 RUN mkdir -p /home/wagtail && chown wagtail:wagtail /home/wagtail
 
 # Use user "wagtail" to run the build commands below and the server itself.
 USER wagtail
 
 # Install the project requirements and build.
-RUN SKIP_MIGRATE=1 bash scripts/install.sh
+COPY --chown=wagtail:wagtail .bin/install.sh requirements.txt package.json yarn.lock .
+RUN SKIP_MIGRATE=1 bash install.sh
 
+# Copy the rest of the sources over
+COPY --chown=wagtail:wagtail . .
 ENV PYTHONUNBUFFERED=1 \
     PORT=80 \
     DJANGO_SETTINGS_MODULE=banmarchive.settings.production \
     NODE_ENV=production \
     PATH=/home/wagtail/.local/bin:$PATH
-
-RUN bash scripts/build.sh
-

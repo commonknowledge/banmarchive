@@ -39,8 +39,8 @@ Figure it out for yourself based on the .devcontainer dockerfile and write it up
 
 This repository has a development dockerfile (.devcontainer/Dockerfile) and a production one (./Dockerfile).
 
-They both run scripts in ./scripts to configure their environments and install dependencies:
+They both run .bin in ./.bin to configure their environments and install dependencies:
 
 - Base container configuration, which is run infrequently (installing apt packages, etc) should be configured in prepare.sh.
-- Frequently-run scripts (installing pip packages, etc) should go in install.sh. The difference between these is that changing prepare.sh triggers a full rebuild of the development container, whereas install.sh is only run after the container is built.
+- Frequently-run .bin (installing pip packages, etc) should go in install.sh. The difference between these is that changing prepare.sh triggers a full rebuild of the development container, whereas install.sh is only run after the container is built.
 - build.sh is the last thing run on deploy to production
