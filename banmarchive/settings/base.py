@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'banmarchive',
     'home',
     'search',
+    'publications',
 
     'wagtail.contrib.forms',
     'wagtail.contrib.redirects',
