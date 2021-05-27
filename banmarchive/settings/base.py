@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'taggit',
     'webpack_loader',
     "anymail",
+    "rest_framework",
 
     'django.contrib.gis',
     'django.contrib.admin',
