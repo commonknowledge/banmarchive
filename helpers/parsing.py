@@ -232,6 +232,16 @@ def upto_markers(string, opts, fn=None):
     return fn(cut) if fn is not None else cut
 
 
+def after_markers(string, opts, fn=None):
+    idx = find_markers(string, opts)
+
+    if idx == -1:
+        return
+
+    cut = string[idx:]
+    return fn(cut) if fn is not None else cut
+
+
 def count_up_to(match, stream):
     i = 0
     for x in stream:
