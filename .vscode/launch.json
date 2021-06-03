@@ -19,11 +19,11 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
-      "cwd": "${fileDirname}",
+      "cwd": "${workspaceFolder}/publications/tests",
       "args": [
         "test",
         "-p",
-        "${fileBasename}"
+        "test_parser.py"
       ],
       "django": true
     },

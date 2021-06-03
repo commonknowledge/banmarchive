@@ -44,3 +44,7 @@ They both run .bin in ./.bin to configure their environments and install depende
 - Base container configuration, which is run infrequently (installing apt packages, etc) should be configured in prepare.sh.
 - Frequently-run .bin (installing pip packages, etc) should go in install.sh. The difference between these is that changing prepare.sh triggers a full rebuild of the development container, whereas install.sh is only run after the container is built.
 - build.sh is the last thing run on deploy to production
+
+## Notes
+
+* New Reasoner's issues are divided into sections. Information about sections has not been migrated.

@@ -1,4 +1,5 @@
 import re
+import datetime
 
 
 def parse(parser, stream):
@@ -14,9 +15,102 @@ def parse(parser, stream):
         raise Exception('Parse Error')
 
 
+def any_of(*parsers):
+    def parse_any_of(stream):
+        for p in parsers:
+            tok = p(stream)
+            if tok:
+                return tok
+
+    return parse_any_of
+
+
+def multiple(parser):
+    def parse_multiple(stream):
+        stream = list(stream)
+        res = []
+
+        while len(stream) != 0:
+            tok = parser(stream)
+            if tok:
+                val, stream = tok
+                res.append(val)
+            else:
+                break
+
+        return res, stream
+
+    return parse_multiple
+
+
+def delimited(parser, delim):
+    def parse_delimited(stream):
+        stream = list(stream)
+        res = []
+        first = True
+
+        while len(stream) != 0:
+            if not first:
+                tok = delim(stream)
+                if tok is None:
+                    break
+
+                _, stream = tok
+
+            first = False
+            tok = parser(stream)
+            if tok:
+                val, stream = tok
+                res.append(val)
+            else:
+                break
+
+        return res, stream
+
+    return parse_delimited
+
+
+def sequence(*seq):
+    def parse_sequence(stream):
+        res = []
+
+        for s in seq:
+            tok = s(stream)
+            if tok is None:
+                return
+
+            val, stream = tok
+            res.append(val)
+
+        return res, stream
+
+    return parse_sequence
+
+
+def mapped(inner, fn):
+    def parse_mapped(stream):
+        tok = inner(stream)
+        if tok:
+            res, stream = tok
+            return fn(*res), stream
+
+    return parse_mapped
+
+
+def filtered(inner, fn):
+    def parse_filtered(stream):
+        tok = inner(stream)
+        if tok:
+            res, stream = tok
+            if fn(res):
+                return tok
+
+    return parse_filtered
+
+
 def trimmed(el):
     s = el if isinstance(el, str) else el.get_text()
-    return re.sub('\\s+', ' ', s)
+    return re.sub('\\s+', ' ', s).strip()
 
 
 def parse_text(stream):
@@ -39,92 +133,47 @@ def parse_text(stream):
         stream = pop_front(stream)
 
     if res.strip() != '':
-        return res, stream
+        return res.strip(), stream
 
 
-def element(selector=None):
+def as_text(inner):
+    return mapped(sequence(inner), lambda x: trimmed(x))
+
+
+parse_string = mapped(
+    sequence(parse_text),
+    lambda text: trimmed(text)
+)
+
+
+def element(selector=None, deep=True):
     def parser(stream):
         if len(stream) == 0:
             return
 
         head = stream[0]
+        match = None
 
         if isinstance(head, str):
             return
 
-        matches = head.find_all(selector)
-        if len(matches) == 0:
-            return
+        if isinstance(selector, str):
+            if head.name == selector:
+                match = head
+        elif isinstance(selector, tuple):
+            if next((x for x in selector if head.name == x), None) is not None:
+                match = head
+        elif callable(selector):
+            if selector(head):
+                match = head
 
-        match = matches[len(matches) - 1]
+        if deep and match is None:
+            matches = head.find_all(selector)
+            if len(matches) != 0:
+                match = matches[len(matches) - 1]
 
-        return trimmed(match), deep_pop_to(stream, match)
-
-    return parser
-
-
-def any_of(*parsers):
-    def parser(stream):
-        for p in parsers:
-            tok = p(stream)
-            if tok:
-                return tok
-
-    return parser
-
-
-def multiple(parser):
-    def parse(stream):
-        stream = list(stream)
-        res = []
-
-        while len(stream) != 0:
-            tok = parser(stream)
-            if tok:
-                val, stream = tok
-                res.append(val)
-            else:
-                break
-
-        return res, stream
-
-    return parse
-
-
-def sequence(*seq):
-    def parser(stream):
-        res = []
-
-        for s in seq:
-            tok = s(stream)
-            if tok is None:
-                return
-
-            val, stream = tok
-            res.append(val)
-
-        return res, stream
-
-    return parser
-
-
-def mapped(inner, fn):
-    def parser(stream):
-        tok = inner(stream)
-        if tok:
-            res, stream = tok
-            return fn(*res), stream
-
-    return parser
-
-
-def filtered(inner, fn):
-    def parser(stream):
-        tok = inner(stream)
-        if tok:
-            res, stream = tok
-            if fn(res):
-                return tok
+        if match:
+            return trimmed(match), deep_pop_to(stream, match)
 
     return parser
 
@@ -203,6 +252,9 @@ def find_markers(string: str, opts):
 
     string = string.lower()
 
+    if callable(opts):
+        return opts(string)
+
     if isinstance(opts, re.Pattern):
         match = opts.search(string)
         if match is None:
@@ -250,6 +302,10 @@ def count_up_to(match, stream):
         i += 1
 
 
+def has_class(el, cls):
+    return cls in el.attrs.get('class', ())
+
+
 def pop_front(coll: list, count=1):
     next = list(coll)
     for _ in range(0, count):
@@ -269,6 +325,41 @@ def deep_pop_front(stream):
 
 def deep_pop_to(stream, match):
     offset = count_up_to(match, stream)
-    length = 1 if isinstance(match, str) else len(list(match.descendants))
+    length = 1 if isinstance(match, str) else len(
+        list(x for x in match.descendants))
 
-    return pop_front(stream, offset + length + 1)
+    if offset is None:
+        return pop_front(stream)
+    else:
+        return pop_front(stream, offset + length + 1)
+
+
+SEASONS_WINTER_START = (
+    ('winter', 12),
+    ('spring', 3),
+    ('summer', 6),
+    ('autumn', 9),
+)
+YEAR_LNG = re.compile('\\d\\d\\d\\d')
+YEAR_SHRT = re.compile('\\d\\d')
+
+
+def seasonal_date(datestr: str):
+    year = None
+    month = None
+
+    yearmatch = re.findall(YEAR_LNG, datestr)
+    if len(yearmatch) > 0:
+        year = int(yearmatch[0])
+
+    else:
+        yearmatch = re.findall(YEAR_SHRT, datestr)
+        if len(yearmatch) > 0:
+            year = 1900 + int(yearmatch[0])
+
+    for season, season_month in SEASONS_WINTER_START:
+        if season in datestr.lower():
+            month = season_month
+
+    if year is not None and month is not None:
+        return datetime.date(year, month, 1)
