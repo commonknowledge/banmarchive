@@ -16,18 +16,28 @@ class PageTag(TaggedItemBase):
     )
 
 
-class Publication(Page):
+class AbstractArchiveItem(Page):
+    class Meta:
+        abstract = True
+
+    @property
+    def parent(self):
+        return self.get_parent()
+
+
+class Publication(AbstractArchiveItem):
     # Config
     parent_page_types = ('home.HomePage',)
 
     # Page fields
     tags = ClusterTaggableManager(through=PageTag, blank=True)
-    introduction_content = RichTextField(blank=True)
-    introduction_author = models.CharField(max_length=1024, blank=True)
-    introduction_date = models.DateField(blank=True)
+    introduction_content = RichTextField(blank=True, null=True)
+    introduction_author = models.CharField(
+        max_length=1024, blank=True, null=True)
+    introduction_date = models.DateField(blank=True, null=True)
 
 
-class AbstractIssue(Page):
+class AbstractIssue(AbstractArchiveItem):
     class Meta:
         abstract = True
 
@@ -36,7 +46,7 @@ class AbstractIssue(Page):
 
     # Page fields
     tags = ClusterTaggableManager(through=PageTag, blank=True)
-    publication_date = models.DateField()
+    publication_date = models.DateField(blank=True, null=True)
 
 
 class SimpleIssue(AbstractIssue):
@@ -50,10 +60,10 @@ class SimpleIssue(AbstractIssue):
 
 
 class MultiArticleIssue(AbstractIssue):
-    pass
+    issue_cover = RichTextField(blank=True, null=True)
 
 
-class Article(Page):
+class Article(AbstractArchiveItem):
     # Config
     parent_page_types = ('MultiArticleIssue',)
 

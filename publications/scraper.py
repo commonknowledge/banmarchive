@@ -1,11 +1,120 @@
 import re
-from sys import intern
+from urllib.parse import unquote
+from os import path
+import datetime
 
 import dateparser
+import requests
 from bs4 import BeautifulSoup
 from django.conf import settings
+from django.utils.text import slugify
 
 from helpers import parsing as ps
+
+
+def scrape(endpoint, auth, root_id):
+    def post_to(route, json=None, **kwargs):
+        url = endpoint + '/api/' + route + '/'
+        print('POST', url, json if json else kwargs.get('data'))
+
+        res = requests.post(url, json=prep_json(json), auth=auth, **kwargs)
+        if not res.ok:
+            if res.status_code == 500:
+                raise IOError('Application Error')
+
+            raise IOError(res.text)
+
+        return res.json()
+
+    def upload_document(pub, doc, title):
+        if doc is None:
+            return None
+
+        pathroot = path.dirname(pub['path'])
+        docpath = unquote(pathroot + '/' + doc)
+
+        with open(docpath, 'rb') as file:
+            doc_resource = post_to('documents', data={
+                'title': title,
+            }, files={'file': file})
+
+        return doc_resource['id']
+
+    def upload_publication(pub_data):
+        pub_resource = post_to('publications', json={
+            'slug': slugify(pub_data['title']),
+            'title': pub_data['title'],
+            'parent': root_id,
+            'tags': ()
+        })
+
+        if pub_data['type'] == 'multi':
+            for issue_data in pub_data['issues']:
+                cover_name = pub_data['title'] + ' ' + issue_data['title']
+
+                cover_id = upload_document(
+                    pub_data, issue_data['pdf'], cover_name)
+
+                issue_resource = post_to('issues/multi', json={
+                    'slug': slugify(issue_data['title']),
+                    'title': issue_data['title'],
+                    'publication_date': issue_data['date'],
+                    'issue_cover': cover_id,
+                    'parent': pub_resource['id'],
+                    'tags': ()
+                })
+
+                for article_data in issue_data['articles']:
+                    doc_name = cover_name + ': ' + article_data['title']
+
+                    content_id = upload_document(
+                        pub_data, article_data['pdf'], doc_name)
+
+                    post_to('articles', json={
+                        'slug': slugify(article_data['title']),
+                        'title': article_data['title'],
+                        'article_content': content_id,
+                        'parent': issue_resource['id'],
+                        'tags': ()
+                    })
+        else:
+            for issue_data in pub_data['issues']:
+                doc_name = pub_data['title'] + ' ' + issue_data['title']
+
+                content_id = upload_document(
+                    pub_data, issue_data['pdf'], doc_name)
+
+                issue_resource = post_to('issues/simple', json={
+                    'slug': slugify(issue_data['title']),
+                    'title': issue_data['title'],
+                    'issue_content': content_id,
+                    'publication_date': issue_data['date'],
+                    'parent': pub_resource['id'],
+                    'tags': ()
+                })
+
+    # upload_publication(crawl_7days())
+    # upload_publication(crawl_blackdwarf())
+    upload_publication(crawl_newreasoner())
+
+
+def prep_json(obj):
+    def prep_val(val):
+        if isinstance(val, datetime.datetime):
+            return val.isoformat()
+        if isinstance(val, datetime.date):
+            return val.isoformat()
+
+        return val
+
+    if obj is None:
+        return None
+
+    return dict({
+        key: prep_val(val)
+        for key, val
+        in obj.items()
+    })
 
 
 def crawl_7days():
@@ -16,6 +125,7 @@ def crawl_7days():
 
     return {
         'title': '7 Days',
+        'path': get_root('7days'),
         'type': 'multi',
         'issues': ps.parse(ps.multiple(parse_issue), stream)
     }
@@ -28,6 +138,7 @@ def crawl_blackdwarf():
 
     return {
         'title': 'Black Dwarf',
+        'path': get_root('blackdwarf'),
         'type': 'simple',
         'issues': ps.parse(ps.multiple(parse_simple_issue), stream)
     }
@@ -43,6 +154,7 @@ def crawl_newreasoner():
 
     return {
         'title': 'New Reasoner',
+        'path': get_root('nr'),
         'type': 'multi',
         'issues': ps.parse(ps.multiple(parse_issue_nr), stream)
     }
@@ -140,6 +252,7 @@ parse_issue_nr = ps.mapped(
     lambda title, articles: {
         'title': title,
         'date': ps.seasonal_date(title),
+        'pdf': None,
         'articles': articles
     }
 )
@@ -157,7 +270,7 @@ parse_issue = ps.mapped(
     ),
     lambda title, cover, cover_credit, articles: {
         'title': ps.trimmed(title),
-        'date': ps.upto_markers(title, VOL_NO_7DAYS, dateparser.parse),
+        'date': ps.upto_markers(title, VOL_NO_7DAYS, parse_date),
         'pdf': cover['href'],
         'articles': articles
     }
@@ -172,7 +285,7 @@ parse_issue_v2 = ps.mapped(
     ),
     lambda title, cover, cover_credit, articles: {
         'title': ps.trimmed(title),
-        'date': ps.upto_markers(title, VOL_NO_7DAYS, dateparser.parse),
+        'date': ps.upto_markers(title, VOL_NO_7DAYS, parse_date),
         'pdf': cover['href'],
         'articles': articles
     }
@@ -184,7 +297,12 @@ parse_simple_issue = ps.mapped(
     ),
     lambda link: {
         'title': ps.trimmed(link['content']),
-        'date': ps.after_markers(link['content'], VOL_NO_BDWARF, dateparser.parse),
+        'date': ps.after_markers(link['content'], VOL_NO_BDWARF, parse_date),
         'pdf': link['href'],
     }
 )
+
+
+def parse_date(datestr):
+    dt = dateparser.parse(datestr)
+    return None if dt is None else dt.date()

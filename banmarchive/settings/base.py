@@ -109,7 +109,6 @@ if os.getenv('SKIP_DB') != '1':
         )
     }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
@@ -185,3 +184,9 @@ MEDIA_URL = '/media/'
 WAGTAIL_SITE_NAME = "banmarchive"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+    ]
+}
