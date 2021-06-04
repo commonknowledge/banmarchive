@@ -37,7 +37,8 @@ class PublicationSerializer(serializers.ModelSerializer):
 class AbstractIssueSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.AbstractIssue
-        fields = COMMON_PAGE_FIELDS + ('publication_date',)
+        fields = COMMON_PAGE_FIELDS + \
+            ('publication_date', 'issue', 'volume', 'number')
 
     tags = PageTagField(many=True, allow_empty=True)
     parent = serializers.PrimaryKeyRelatedField(
@@ -61,7 +62,8 @@ class MultiArticleIssueSerializer(AbstractIssueSerializer):
 class ArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Article
-        fields = COMMON_PAGE_FIELDS + ('article_content',)
+        fields = COMMON_PAGE_FIELDS + \
+            ('article_content', 'author_name', 'intro_text')
 
     tags = PageTagField(many=True, allow_empty=True)
     article_content = serializers.PrimaryKeyRelatedField(

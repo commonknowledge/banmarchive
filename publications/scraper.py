@@ -61,6 +61,9 @@ def scrape(endpoint, auth, root_id):
                     'publication_date': issue_data['date'],
                     'issue_cover': cover_id,
                     'parent': pub_resource['id'],
+                    'issue': issue_data.get('issue'),
+                    'volume': issue_data.get('volume'),
+                    'number': issue_data.get('number'),
                     'tags': ()
                 })
 
@@ -75,6 +78,8 @@ def scrape(endpoint, auth, root_id):
                         'title': article_data['title'],
                         'article_content': content_id,
                         'parent': issue_resource['id'],
+                        'intro_text': article_data.get('intro'),
+                        'author_name': article_data.get('author'),
                         'tags': ()
                     })
         else:
@@ -90,11 +95,14 @@ def scrape(endpoint, auth, root_id):
                     'issue_content': content_id,
                     'publication_date': issue_data['date'],
                     'parent': pub_resource['id'],
+                    'issue': issue_data.get('issue'),
+                    'volume': issue_data.get('volume'),
+                    'number': issue_data.get('number'),
                     'tags': ()
                 })
 
-    # upload_publication(crawl_7days())
-    # upload_publication(crawl_blackdwarf())
+    upload_publication(crawl_7days())
+    upload_publication(crawl_blackdwarf())
     upload_publication(crawl_newreasoner())
 
 
@@ -127,7 +135,7 @@ def crawl_7days():
         'title': '7 Days',
         'path': get_root('7days'),
         'type': 'multi',
-        'issues': ps.parse(ps.multiple(parse_issue), stream)
+        'issues': ps.parse(ps.multiple(parse_issue_7days), stream)
     }
 
 
@@ -199,18 +207,6 @@ def extract_stream(root):
     return stream
 
 
-parse_article = ps.mapped(
-    ps.sequence(
-        ps.parse_pdf_link,
-        ps.optional(ps.parse_text)
-    ),
-    lambda link, text: {
-        'title': link['content'],
-        'pdf': link['href'],
-        'intro': text
-    }
-)
-
 parse_article_nr_a = ps.mapped(
     ps.sequence(
         ps.parse_pdf_link,
@@ -247,11 +243,12 @@ parse_issue_nr = ps.mapped(
     ps.sequence(
         ps.element(lambda x: ps.has_class(x, 'headerlarge')),
         ps.delimited(parse_article_nr, ps.multiple(
-            ps.element('br', deep=False)))
+            ps.element('br', deep=False)), term=ps.element('strong'))
     ),
     lambda title, articles: {
         'title': title,
         'date': ps.seasonal_date(title),
+        'issue': extract_group(r'issue (\d+)', title, int),
         'pdf': None,
         'articles': articles
     }
@@ -261,32 +258,33 @@ VOL_NO_7DAYS = re.compile('(vol\\.? \\d+)? no.? \\d+', re.IGNORECASE)
 def VOL_NO_BDWARF(str): return str.rfind(' - ')
 
 
-parse_issue = ps.mapped(
+parse_article_7days = ps.mapped(
     ps.sequence(
-        ps.element(lambda e: VOL_NO_7DAYS.search(ps.trimmed(e))),
         ps.parse_pdf_link,
-        ps.optional(ps.parse_text),
-        ps.multiple(parse_article)
+        ps.optional(ps.parse_text)
     ),
-    lambda title, cover, cover_credit, articles: {
-        'title': ps.trimmed(title),
-        'date': ps.upto_markers(title, VOL_NO_7DAYS, parse_date),
-        'pdf': cover['href'],
-        'articles': articles
+    lambda link, text: {
+        'title': link['content'],
+        'pdf': link['href'],
+        'intro': text
     }
 )
 
-parse_issue_v2 = ps.mapped(
+issue_start = ps.element(lambda e: VOL_NO_7DAYS.search(ps.trimmed(e)))
+parse_issue_7days = ps.mapped(
     ps.sequence(
-        ps.element(lambda e: VOL_NO_7DAYS.search(ps.trimmed(e))),
+        issue_start,
         ps.parse_pdf_link,
         ps.optional(ps.parse_text),
-        ps.multiple(parse_article)
+        ps.multiple(parse_article_7days, term=issue_start)
     ),
     lambda title, cover, cover_credit, articles: {
-        'title': ps.trimmed(title),
-        'date': ps.upto_markers(title, VOL_NO_7DAYS, parse_date),
+        'title': remove(('7 days', 'cover'), title),
+        'date': extract_date(title),
         'pdf': cover['href'],
+        'volume': extract_group(r'vol.? (\d+)', title, int),
+        'number': extract_group((r'no.? (\d+)', r'number (\d+)'), title, int),
+        'issue': extract_group(r'issue (\d+)', title, int),
         'articles': articles
     }
 )
@@ -297,12 +295,40 @@ parse_simple_issue = ps.mapped(
     ),
     lambda link: {
         'title': ps.trimmed(link['content']),
-        'date': ps.after_markers(link['content'], VOL_NO_BDWARF, parse_date),
+        'date': extract_date(link['content']),
+        'volume': extract_group(r'volume (\d+)', link['content'], int),
+        'issue': extract_group(r'issue (\d+)', link['content'], int),
+        'number': extract_group(r'number (\d+)', link['content'], int),
         'pdf': link['href'],
     }
 )
 
 
-def parse_date(datestr):
-    dt = dateparser.parse(datestr)
-    return None if dt is None else dt.date()
+def extract_date(datestr: str):
+    seps = ('-', 'no', 'number', 'issue', 'vol')
+
+    for sep in seps:
+        components = datestr.lower().split(sep)
+        for c in components:
+            dt = dateparser.parse(c.strip())
+
+            if dt is not None and dt.year != datetime.date.today().year:
+                return dt.date()
+
+
+def remove(patterns, string):
+    for p in patterns:
+        string = re.sub(p, '', string, flags=re.IGNORECASE)
+
+    return string
+
+
+def extract_group(patterns, string, fn=None, i=1):
+    if isinstance(patterns, str):
+        patterns = (patterns,)
+
+    for pattern in patterns:
+        match = re.search(pattern, string, re.IGNORECASE)
+        if match is not None:
+            g = match.group(i)
+            return g if fn is None else fn(g)

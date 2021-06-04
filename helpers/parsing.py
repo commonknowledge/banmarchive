@@ -8,7 +8,7 @@ def parse(parser, stream):
         res, stream = tok
         if len(stream) != 0:
             raise Exception(
-                f'Failed with {len(stream)} unparsed items from {trimmed(stream[0]).strip()}')
+                f'Failed with {len(stream)} unparsed items from {str(stream[0])}')
 
         return res
     else:
@@ -25,12 +25,17 @@ def any_of(*parsers):
     return parse_any_of
 
 
-def multiple(parser):
+def multiple(parser, term=None):
     def parse_multiple(stream):
         stream = list(stream)
         res = []
 
         while len(stream) != 0:
+            if term:
+                tok = term(stream)
+                if tok:
+                    break
+
             tok = parser(stream)
             if tok:
                 val, stream = tok
@@ -43,7 +48,7 @@ def multiple(parser):
     return parse_multiple
 
 
-def delimited(parser, delim):
+def delimited(parser, delim, term=None):
     def parse_delimited(stream):
         stream = list(stream)
         res = []
@@ -56,6 +61,11 @@ def delimited(parser, delim):
                     break
 
                 _, stream = tok
+
+            if term:
+                tok = term(stream)
+                if tok:
+                    break
 
             first = False
             tok = parser(stream)
@@ -147,6 +157,19 @@ parse_string = mapped(
 
 
 def element(selector=None, deep=True):
+    def test(head):
+        if isinstance(head, str):
+            return False
+
+        if isinstance(selector, str):
+            return head.name == selector
+
+        elif isinstance(selector, tuple):
+            return next((x for x in selector if head.name == x), None) is not None
+
+        elif callable(selector):
+            return selector(head)
+
     def parser(stream):
         if len(stream) == 0:
             return
@@ -157,20 +180,15 @@ def element(selector=None, deep=True):
         if isinstance(head, str):
             return
 
-        if isinstance(selector, str):
-            if head.name == selector:
-                match = head
-        elif isinstance(selector, tuple):
-            if next((x for x in selector if head.name == x), None) is not None:
-                match = head
-        elif callable(selector):
-            if selector(head):
-                match = head
+        if deep:
+            # Find the first, deepest match of the selector on the head element
+            candidate = head.find(selector)
+            while candidate is not None:
+                match = candidate
+                candidate = candidate.find(selector)
 
-        if deep and match is None:
-            matches = head.find_all(selector)
-            if len(matches) != 0:
-                match = matches[len(matches) - 1]
+        if match is None:
+            match = head if test(head) else None
 
         if match:
             return trimmed(match), deep_pop_to(stream, match)
