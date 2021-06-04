@@ -44,3 +44,5 @@ ENV PYTHONUNBUFFERED=1 \
     DJANGO_SETTINGS_MODULE=banmarchive.settings.production \
     NODE_ENV=production \
     PATH=/home/wagtail/.local/bin:$PATH
+
+RUN bash .bin/build.sh

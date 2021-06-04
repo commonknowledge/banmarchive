@@ -17,7 +17,7 @@ jobs:
       repo: commonknowledge/banmarchive
       branch: main
       deploy_on_push: false
-    dockerfile_path: .do/web.dockerfile
+    dockerfile_path: .do/Dockerfile
     instance_count: 1
     instance_size_slug: basic-xxs
     kind: PRE_DEPLOY
@@ -28,7 +28,7 @@ static_sites:
       repo: commonknowledge/banmarchive
       branch: main
       deploy_on_push: false
-    dockerfile_path: .do/static.dockerfile
+    dockerfile_path: .do/Dockerfile
     output_dir: /app/static
     routes:
       - path: /static/
@@ -37,7 +37,7 @@ services:
       repo: commonknowledge/banmarchive
       branch: main
       deploy_on_push: false
-    dockerfile_path: .do/web.dockerfile
+    dockerfile_path: .do/Dockerfile
     envs:
       - key: AWS_SECRET_ACCESS_KEY
         scope: RUN_AND_BUILD_TIME
