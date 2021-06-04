@@ -1,5 +1,7 @@
-name: banmarchive
-region: ams
+databases:
+  - engine: PG
+    name: db
+    version: "12"
 domains:
   - domain: banmarchive.commonknowledge.dev
     type: PRIMARY
@@ -12,32 +14,20 @@ envs:
     type: SECRET
     value: EV[1:nqAWJXElIRuXUIta/nm3SFIXDAAFRaY0:Fxf2ZZ+zc5G/Mym1dGkUiPwz/hJbD3HyAtWXzhOtWeQkrTX1g+ytZ3f/YHcpcNsnt7tST91Wav3VwILS0wPmfCswhW0Rqqwb3H+e9aBO7aE=]
 jobs:
-  - name: release
+  - dockerfile_path: Dockerfile
     github:
-      repo: commonknowledge/banmarchive
       branch: main
-      deploy_on_push: false
-    dockerfile_path: .do/Dockerfile
+      deploy_on_push: true
+      repo: commonknowledge/banmarchive
     instance_count: 1
     instance_size_slug: basic-xxs
     kind: PRE_DEPLOY
+    name: release
     run_command: bash .bin/release.sh
-static_sites:
-  - name: staticfiles
-    github:
-      repo: commonknowledge/banmarchive
-      branch: main
-      deploy_on_push: false
-    dockerfile_path: .do/Dockerfile
-    output_dir: /app/static
-    routes:
-      - path: /static/
+name: banmarchive
+region: ams
 services:
-  - github:
-      repo: commonknowledge/banmarchive
-      branch: main
-      deploy_on_push: false
-    dockerfile_path: .do/Dockerfile
+  - dockerfile_path: Dockerfile
     envs:
       - key: AWS_SECRET_ACCESS_KEY
         scope: RUN_AND_BUILD_TIME
@@ -71,6 +61,10 @@ services:
       - key: MAILGUN_SENDER_DOMAIN
         scope: RUN_AND_BUILD_TIME
         value: commonknowledge.dev
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: commonknowledge/banmarchive
     http_port: 8080
     instance_count: 1
     instance_size_slug: basic-xxs
@@ -78,7 +72,13 @@ services:
     routes:
       - path: /
     run_command: gunicorn --worker-tmp-dir /dev/shm banmarchive.wsgi
-databases:
-  - engine: PG
-    name: db
-    version: "12"
+static_sites:
+  - dockerfile_path: Dockerfile
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: commonknowledge/banmarchive
+    name: staticfiles
+    output_dir: /app/static
+    routes:
+      - path: /static
