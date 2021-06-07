@@ -154,9 +154,7 @@ STATICFILES_FINDERS = [
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'dist'),
-] + [
-    os.path.join(BASE_DIR, app, 'static')
-    for app in INSTALLED_APPS
+    os.path.join(BASE_DIR, 'banmarchive', 'static')
 ]
 
 WEBPACK_LOADER = {
