@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load static webpack_bundle %}
+
+
+{% block extra_css %}
+{% webpack_bundle "pdf" "css" %}
+{% endblock %}
+
+
+{% block body_class %}d-flex flex-column h-100{% endblock %}
+
+
+{% block content %}
+<div class="container mb-3">
+  <h1>
+    {{ self.title }}
+  </h1>
+</div>
+
+<main class="d-flex overflow-hidden flex-column flex-grow-1 position-relative">
+  <div class="row h-100">
+    <div class="col-4 h-100 overflow-hidden overflow-y-auto">
+      <nav class="nav flex-column">
+        {% for article in self.articles %}
+          <li class="nav-item">
+            <a class="nav-link" href={{article.url}}>
+              {{article.title}}
+            </a>
+          </li>
+        {% endfor %}
+      </nav>
+    </div>
+
+    <div data-pdf="{{ self.pdf.url }}" class="col-8 bg-light pdf-container">
+    </div>
+  </div>
+</main>
+{% endblock %}
+
+
+{% block extra_js %}
+{% webpack_bundle "pdf" %}
+{% endblock %}

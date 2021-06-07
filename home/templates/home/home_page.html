@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block body_class %}template-homepage{% endblock %}
-
 {% block extra_css %}
-
-{% comment %}
-Delete the line below if you're just getting started and want to remove the welcome screen!
-{% endcomment %}
-<link rel="stylesheet" href="{% static 'css/welcome_page.css' %}">
 {% endblock extra_css %}
 
 {% block content %}
 
-{% comment %}
-Delete the line below if you're just getting started and want to remove the welcome screen!
-{% endcomment %}
-{% include 'home/welcome_page.html' %}
+<main class="container">
+  <ul class="list-group">
+    {% for pub in self.publications %}
+      <li class="list-group-item">
+        <a href={{pub.url}}>
+          {{pub.title}}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+</main>
 
 {% endblock content %}

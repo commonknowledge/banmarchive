@@ -1,5 +1,4 @@
 from django.db import models
-
 from modelcluster.fields import ParentalKey
 from modelcluster.contrib.taggit import ClusterTaggableManager
 from wagtail.core.models import Page
@@ -9,6 +8,8 @@ from wagtail.admin.edit_handlers import FieldPanel, MultiFieldPanel, InlinePanel
 from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.documents.edit_handlers import DocumentChooserPanel
 from taggit.models import TaggedItemBase
+
+from helpers.content import get_children_of_type
 
 
 class PageTag(TaggedItemBase):
@@ -38,6 +39,11 @@ class Publication(AbstractArchiveItem):
     introduction_author = models.CharField(
         max_length=1024, blank=True, null=True)
     introduction_date = models.DateField(blank=True, null=True)
+
+    # Data
+    @property
+    def issues(self):
+        return get_children_of_type(self, SimpleIssue, MultiArticleIssue)
 
 
 class AbstractIssue(AbstractArchiveItem):
@@ -81,6 +87,11 @@ class SimpleIssue(AbstractIssue):
         related_name='+'
     )
 
+    # Data
+    @property
+    def pdf(self):
+        return self.issue_content
+
 
 class MultiArticleIssue(AbstractIssue):
     # Config
@@ -96,9 +107,20 @@ class MultiArticleIssue(AbstractIssue):
         related_name='+'
     )
 
+    # Data
+    @property
+    def articles(self):
+        return get_children_of_type(self, Article)
+
+    @property
+    def pdf(self):
+        return self.issue_cover
+
 
 class Article(AbstractArchiveItem):
     # Config
+    template = 'publications/multi_article_issue.html'
+
     parent_page_types = ('MultiArticleIssue',)
 
     content_panels = Page.content_panels + [
@@ -124,3 +146,16 @@ class Article(AbstractArchiveItem):
     )
     tags = ClusterTaggableManager(
         through=PageTag, blank=True, verbose_name='Keywords')
+
+    # Data
+    @property
+    def issue(self):
+        return self.get_parent().specific
+
+    @property
+    def articles(self):
+        return get_children_of_type(self.issue, Article)
+
+    @property
+    def pdf(self):
+        return self.article_content

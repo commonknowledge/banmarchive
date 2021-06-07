@@ -1,9 +1,11 @@
-{% load static wagtailuserbar %}
-{% load render_bundle from webpack_loader %}
+{% load static wagtailuserbar webpack_bundle %}
 
 <!DOCTYPE html>
-<html class="no-js" lang="en">
+<html class="no-js h-100" lang="en">
     <head>
+        <script>
+            document.documentElement.classList.remove('no-js')
+        </script>
         <meta charset="utf-8" />
         <title>
             {% block title %}
@@ -18,28 +20,47 @@
         <meta name="description" content="" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        {% if not debug %}
-        {% render_bundle 'main' 'css' %}
-        {% endif %}
+        {% webpack_bundle 'main' 'css' %}
 
         {% block extra_css %}
-            {# Override this in templates to add extra stylesheets #}
         {% endblock %}
     </head>
 
-    <body class="{% block body_class %}{% endblock %}">
+    <body class="min-vh-100 {% block body_class %}{% endblock %}">
         {% wagtailuserbar %}
 
-        {% block content %}{% endblock %}
+        {% block header %}
+        <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container mb-5">
+            <a class="navbar-brand" href="/">
+                <img class="logo" src={% static 'img/logo.png' %} />
+            </a>
 
-        {% if debug %}
-        <script src="http://localhost:8080/main.js"></script>
-        {% else %} -->
-        {% render_bundle 'main' 'js' %}
-        {% endif %}
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <span class="flex-grow-1"></span>
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="/">Archive</a>
+                </li>
+                <li class="nav-item">
+                <a class="nav-link" href="/search/">Search</a>
+                </li>
+            </ul>
+            </div>
+        </div>
+        </nav>
+        {% endblock %}
+
+        {% block content %}
+        {% endblock %}
+
+        {% webpack_bundle 'main' %}
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
     
         {% block extra_js %}
-            {# Override this in templates to add extra javascript #}
         {% endblock %}
     </body>
 </html>

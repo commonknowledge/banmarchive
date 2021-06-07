@@ -42,7 +42,8 @@
 	"extensions": [
 		"ms-python.python",
 		"mtxr.sqltools",
-		"mtxr.sqltools-driver-pg"
+		"mtxr.sqltools-driver-pg",
+		"coderfoundry.bootstrap-5-snippets-by-coder-foundry"
 	],
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [5000, 5432],

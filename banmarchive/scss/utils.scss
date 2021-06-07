@@ -1,0 +1,10 @@
+.overflow-y-auto {
+  overflow-y: auto;
+}
+
+.center-screen {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

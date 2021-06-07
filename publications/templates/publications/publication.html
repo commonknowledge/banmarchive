@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mb-3">
+  <h1>
+    {{ self.title }}
+  </h1>
+</div>
+
+<main class="container">
+  <div class="row">
+    {% for issue in self.issues %}
+      <div class="col-3 p-2">
+        <a href="{{ issue.url }}" class="card">
+          <img class="card-img-top" alt="Cover image">
+
+          <div class="card-body">
+            <h5 class="card-title">{{ issue.title }}</h5>
+          </div>
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+</main>
+{% endblock %}

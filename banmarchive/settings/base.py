@@ -154,6 +154,9 @@ STATICFILES_FINDERS = [
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'dist'),
+] + [
+    os.path.join(BASE_DIR, app, 'static')
+    for app in INSTALLED_APPS
 ]
 
 WEBPACK_LOADER = {
