@@ -21,6 +21,14 @@ class PageTag(TaggedItemBase):
     )
 
 
+class PdfThumbnailMixin:
+    def generate_thumbnail(self):
+        self.get_thumbnail_document()
+
+    def get_thumbnail_document(self):
+        return None
+
+
 class AbstractArchiveItem(Page):
     class Meta:
         abstract = True
@@ -79,7 +87,7 @@ class AbstractIssue(AbstractArchiveItem):
     issue = models.IntegerField(blank=True, null=True)
 
 
-class SimpleIssue(IndexedPdfMixin, AbstractIssue):
+class SimpleIssue(IndexedPdfMixin, PdfThumbnailMixin, AbstractIssue):
     # Config
     content_panels = (DocumentChooserPanel('issue_content'),) + \
         AbstractIssue.content_panels
@@ -107,6 +115,9 @@ class SimpleIssue(IndexedPdfMixin, AbstractIssue):
     def pdf(self):
         return self.issue_content
 
+    def get_thumbnail_document(self):
+        return self.issue_content
+
 
 class MultiArticleIssue(AbstractIssue):
     # Config
@@ -126,6 +137,9 @@ class MultiArticleIssue(AbstractIssue):
     @property
     def articles(self):
         return get_children_of_type(self, Article)
+
+    def get_thumbnail_document(self):
+        return self.issue_cover
 
     @property
     def pdf(self):
