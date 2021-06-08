@@ -18,16 +18,16 @@
         {% if search_results %}
             <h2>{{total_count}} results for {{search_query}}</h2>
 
-            <ul>
+            <div>
                 {% for result in search_results %}
-                    <li>
-                        <h4><a href="{% pageurl result %}">{{ result }}</a></h4>
-                        {% if result.search_description %}
-                            {{ result.search_description }}
+                    <div class="search-result-item">
+                        <h4><a href="{{ result.page.url }}">{{ result.page.title }}</a></h4>
+                        {% if result.search_highlight %}
+                            {{ result.search_highlight }}
                         {% endif %}
-                    </li>
+                    </div>
                 {% endfor %}
-            </ul>
+            </div>
     
             {% if search_results.has_previous %}
                 <a href="{% url 'search' %}?query={{ search_query|urlencode }}&amp;page={{ search_results.previous_page_number }}">Previous</a>

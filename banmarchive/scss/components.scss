@@ -1,3 +1,11 @@
 .logo {
   height: 60px;
 }
+
+.search-result-item:not(:last-of-type) {
+  border-bottom: 1px solid $border-color;
+}
+
+.search-highlight {
+  background-color: rgba(2, 128, 139, 0.1);
+}

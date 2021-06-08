@@ -12,7 +12,6 @@ ALLOWED_HOSTS = ['*']
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 BASE_URL = 'http://localhost:8080'
 
-
 DATABASES['default']['CONN_MAX_AGE'] = 0
 
 try:

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'wagtail.search',
     'wagtail.admin',
     'wagtail.core',
+    'wagtail.contrib.postgres_search',
 
     'modelcluster',
     'taggit',
@@ -186,8 +187,38 @@ WAGTAIL_SITE_NAME = "banmarchive"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
+WAGTAILSEARCH_BACKENDS = {
+    'default': {
+        'BACKEND': 'wagtail.contrib.postgres_search.backend',
+        'AUTO_UPDATE': False,
+    }
+}
+
+# Rest settings
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
     ]
+}
+
+
+# Logging
+
+DJANGO_LOG_LEVEL = os.getenv('DJANGO_LOG_LEVEL', 'INFO')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console'],
+            'level': DJANGO_LOG_LEVEL,
+        },
+    },
 }

@@ -5,11 +5,12 @@ from wagtail.core.models import Page
 from wagtail.core.fields import RichTextField
 from wagtail.documents.models import Document
 from wagtail.admin.edit_handlers import FieldPanel, MultiFieldPanel, InlinePanel
-from wagtail.images.edit_handlers import ImageChooserPanel
+from wagtail.search import index
 from wagtail.documents.edit_handlers import DocumentChooserPanel
 from taggit.models import TaggedItemBase
 
 from helpers.content import get_children_of_type
+from search.models import IndexedPdfMixin
 
 
 class PageTag(TaggedItemBase):
@@ -53,6 +54,11 @@ class AbstractIssue(AbstractArchiveItem):
     # Config
     parent_page_types = ('Publication',)
 
+    search_fields = AbstractArchiveItem.search_fields + [
+        index.FilterField('tags'),
+        index.FilterField('publication_date'),
+    ]
+
     content_panels = (
         MultiFieldPanel(
             (
@@ -73,10 +79,18 @@ class AbstractIssue(AbstractArchiveItem):
     issue = models.IntegerField(blank=True, null=True)
 
 
-class SimpleIssue(AbstractIssue):
+class SimpleIssue(IndexedPdfMixin, AbstractIssue):
     # Config
     content_panels = (DocumentChooserPanel('issue_content'),) + \
         AbstractIssue.content_panels
+
+    search_fields = AbstractIssue.search_fields + [
+        index.SearchField('text_content'),
+    ]
+
+    pdf_text_mapping = {
+        'issue_content': 'text_content'
+    }
 
     # Page fields
     issue_content = models.ForeignKey(
@@ -86,6 +100,7 @@ class SimpleIssue(AbstractIssue):
         on_delete=models.SET_NULL,
         related_name='+'
     )
+    text_content = models.TextField(blank=True, default='')
 
     # Data
     @property
@@ -116,9 +131,22 @@ class MultiArticleIssue(AbstractIssue):
     def pdf(self):
         return self.issue_cover
 
+    def save(self, clean, user, log_action, **kwargs):
+        return super().save(clean=clean, user=user, log_action=log_action, **kwargs)
 
-class Article(AbstractArchiveItem):
+
+class Article(IndexedPdfMixin, AbstractArchiveItem):
     # Config
+    pdf_text_mapping = {
+        'article_content': 'text_content'
+    }
+
+    search_fields = AbstractArchiveItem.search_fields + [
+        index.SearchField('text_content'),
+        index.SearchField('author_name'),
+        index.FilterField('tags'),
+    ]
+
     template = 'publications/multi_article_issue.html'
 
     parent_page_types = ('MultiArticleIssue',)
@@ -146,6 +174,7 @@ class Article(AbstractArchiveItem):
     )
     tags = ClusterTaggableManager(
         through=PageTag, blank=True, verbose_name='Keywords')
+    text_content = models.TextField(blank=True, default='')
 
     # Data
     @property
