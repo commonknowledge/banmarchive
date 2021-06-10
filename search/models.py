@@ -9,33 +9,36 @@ class IndexedPdfMixin:
         super().__init_subclass__()
         IndexedPdfMixinSubclasses.append(cls)
 
+    '''
+    Mapping of pdf document attributes to text attributes that should hold the document content.
+    '''
     pdf_text_mapping = {}
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def save(self, *args, reindex_pdfs=True, **kwargs):
+        '''
+        Intercept save of model and reindex the pdf if it doesn't have any searchable content
+        '''
 
-        self._indexed_pdf_mixin_init = dict({
-            key: getattr(self, key).file
-            for key in self.pdf_text_mapping.keys()
-            if getattr(self, key) is not None
-        })
-
-    def save(self, clean=True, user=None, log_action=False, reindex_pdfs=True, **kwargs):
         if reindex_pdfs:
-            for document_key, prev_document_file in self._indexed_pdf_mixin_init.items():
-                # If it has changed, re-index the file.
-                document = getattr(self, document_key)
-                document_file = None if document is None else document.file
-
-                if document_file != prev_document_file:
+            for document_key in self.pdf_text_mapping.keys():
+                if not self.has_indexed_pdf_content(document_key):
                     self.reindex_pdf_content(document_key, save=False)
 
-        return super().save(clean=clean, user=user, log_action=log_action, **kwargs)
+        return super().save(*args, **kwargs)
 
-    def has_indexed_pdf_content(self):
-        for document_key, text_content_key in self.pdf_text_mapping.items():
+    def has_indexed_pdf_content(self, document_key=None):
+        '''
+        True if all of this model's pdf documents have been indexed.
+        '''
+
+        if document_key is not None:
+            text_content_key = self.pdf_text_mapping[document_key]
             text = getattr(self, text_content_key)
-            if getattr(self, document_key) is not None and text is None or text == '':
+
+            return getattr(self, document_key) is not None and text is not None and text != ''
+
+        for document_key in self.pdf_text_mapping.keys():
+            if not self.has_indexed_pdf_content(document_key):
                 return False
 
         return True

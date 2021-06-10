@@ -41,6 +41,16 @@
       "django": true
     },
     {
+      "name": "Python: Regenerate PDF thumbnails",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/manage.py",
+      "args": [
+        "regenerate_thumbnails"
+      ],
+      "django": true
+    },
+    {
       "name": "Python: Tests",
       "type": "python",
       "request": "launch",

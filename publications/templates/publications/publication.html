@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load wagtailimages_tags %}
 
 {% block content %}
 <div class="container mb-3">
@@ -12,7 +13,7 @@
     {% for issue in self.issues %}
       <div class="col-3 p-2">
         <a href="{{ issue.url }}" class="card">
-          <img class="card-img-top" alt="Cover image">
+          {% image issue.specific.cover_image height-364 class="card-img-top publication-image" %}
 
           <div class="card-body">
             <h5 class="card-title">{{ issue.title }}</h5>
