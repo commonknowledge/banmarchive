@@ -1,4 +1,5 @@
 import logging
+import time
 
 from django.core.management.base import BaseCommand
 
@@ -25,5 +26,22 @@ class Command(BaseCommand):
 
             for obj in cls.objects.all().iterator():
                 if not obj.has_pdf_thumbnail() or all:
-                    logging.info('Generating thumbnail for %s', obj)
-                    obj.generate_pdf_thumbnail()
+                    ok = False
+
+                    for attempt in range(5):
+                        logging.info(
+                            'Generating thumbnail for %s (%s/%s)', obj, attempt + 1, 5)
+
+                        try:
+                            obj.generate_pdf_thumbnail()
+                            ok = True
+                            break
+
+                        except Exception as ex:
+                            logging.warn(
+                                'Thumbnail generation attempty failed. Reason: %s', ex)
+                            time.sleep(5)
+
+                    if not ok:
+                        logging.error(
+                            'Thumbnail generation failed for %s', obj)
