@@ -31,3 +31,5 @@ try:
     from .local import *
 except ImportError:
     pass
+
+WAGTAILTRANSFER_SECRET_KEY = os.getenv('WAGTAILTRANSFER_SECRET_KEY', None)

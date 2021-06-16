@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'wagtail.admin',
     'wagtail.core',
     'wagtail.contrib.postgres_search',
+    'wagtail_transfer',
 
     'modelcluster',
     'taggit',
@@ -192,6 +193,12 @@ WAGTAILSEARCH_BACKENDS = {
     'default': {
         'BACKEND': 'wagtail.contrib.postgres_search.backend',
         'AUTO_UPDATE': False,
+    }
+}
+
+WAGTAILTRANSFER_SOURCES = {
+    'staging': {
+        'BASE_URL': 'https://banmarchive.commonknowledge.dev/wagtail-transfer/',
     }
 }
 

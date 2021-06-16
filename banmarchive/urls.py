@@ -1,12 +1,12 @@
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf.urls.static import static
 from django.conf import settings
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.contrib import admin
-
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.core import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
+from wagtail_transfer import urls as wagtailtransfer_urls
 
 from search import views as search_views
 from helpers import rest
@@ -30,5 +30,6 @@ if settings.DEBUG:
                           document_root=settings.MEDIA_ROOT)
 
 urlpatterns = urlpatterns + [
+    re_path(r'^wagtail-transfer/', include(wagtailtransfer_urls)),
     path("", include(wagtail_urls)),
 ]
