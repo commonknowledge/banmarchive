@@ -76,7 +76,7 @@ class AbstractIssue(PdfThumbnailMixin, AbstractArchiveItem):
         ImageChooserPanel('cover_image')
     ]
 
-    content_panels = (
+    content_panels = AbstractArchiveItem.content_panels + (
         MultiFieldPanel(
             (
                 FieldPanel('publication_date'),
@@ -185,7 +185,7 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
 
     parent_page_types = ('MultiArticleIssue',)
 
-    content_panels = Page.content_panels + [
+    content_panels = AbstractArchiveItem.content_panels + [
         FieldPanel('author_name'),
         DocumentChooserPanel('article_content'),
         FieldPanel('tags'),
