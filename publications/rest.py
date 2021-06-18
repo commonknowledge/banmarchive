@@ -3,6 +3,8 @@ import json
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from rest_framework import viewsets, permissions, exceptions, response, parsers
+from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 from wagtail.core.models import Page
 from wagtail.documents.models import Document
 
@@ -92,3 +94,11 @@ class DocumentsApiView(CreateOrUpdateMixin, viewsets.GenericViewSet):
     parser_classes = (parsers.MultiPartParser,)
     queryset = Document.objects.all()
     identitfier_keys = ('title',)
+
+    @action(url_path='query', detail=False)
+    def check(self, request):
+        res = get_object_or_404(self.get_queryset().filter(
+            title=request.query_params.get('title')
+        ))
+
+        return response.Response(self.get_serializer(instance=res).data)

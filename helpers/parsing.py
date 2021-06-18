@@ -48,6 +48,13 @@ def multiple(parser, term=None):
     return parse_multiple
 
 
+def header_body(header, body):
+    return sequence(
+        header,
+        multiple(body, term=header)
+    )
+
+
 def delimited(parser, delim, term=None):
     def parse_delimited(stream):
         stream = list(stream)
@@ -194,6 +201,10 @@ def element(selector=None, deep=True):
             return trimmed(match), deep_pop_to(stream, match)
 
     return parser
+
+
+def keyword(regex):
+    return element(lambda x: re.match(regex, trimmed(x), re.IGNORECASE))
 
 
 def parse_whitespace(stream):

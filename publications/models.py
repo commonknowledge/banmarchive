@@ -76,7 +76,7 @@ class AbstractIssue(PdfThumbnailMixin, AbstractArchiveItem):
         ImageChooserPanel('cover_image')
     ]
 
-    content_panels = AbstractArchiveItem.content_panels + (
+    content_panels = AbstractArchiveItem.content_panels + [
         MultiFieldPanel(
             (
                 FieldPanel('publication_date'),
@@ -85,8 +85,8 @@ class AbstractIssue(PdfThumbnailMixin, AbstractArchiveItem):
                 FieldPanel('number'),
             ),
             'Publication details'
-        ),
-    )
+        )
+    ]
 
     # Page fields
     tags = ClusterTaggableManager(through=PageTag, blank=True)
@@ -107,8 +107,8 @@ class SimpleIssue(IndexedPdfMixin, AbstractIssue):
     # Config
     thumbnail_attribute = 'cover_image'
 
-    content_panels = (DocumentChooserPanel('issue_content'),
-                      FieldPanel('text_content'),) + \
+    content_panels = [DocumentChooserPanel('issue_content'),
+                      FieldPanel('text_content'), ] + \
         AbstractIssue.content_panels
 
     search_fields = AbstractIssue.search_fields + [
@@ -142,7 +142,7 @@ class MultiArticleIssue(AbstractIssue):
     # Config
     thumbnail_attribute = 'cover_image'
 
-    content_panels = (DocumentChooserPanel('issue_cover'),) + \
+    content_panels = [DocumentChooserPanel('issue_cover')] + \
         AbstractIssue.content_panels
 
     def get_thumbnail_document(self):

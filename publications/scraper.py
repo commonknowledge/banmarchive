@@ -1,11 +1,13 @@
+from collections import defaultdict
+import os
 import re
-from urllib.parse import unquote
+from urllib.parse import unquote, urlencode
 from os import path
 import datetime
 
 import dateparser
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 from django.conf import settings
 from django.utils.text import slugify
 
@@ -29,6 +31,11 @@ def scrape(endpoint, auth, root_id):
     def upload_document(pub, doc, title):
         if doc is None:
             return None
+
+        exists = requests.get(
+            endpoint + f'/api/documents/query/?{urlencode({"title": title})}', auth=auth)
+        if exists.ok:
+            return exists.json()['id']
 
         pathroot = path.dirname(pub['path'])
         docpath = unquote(pathroot + '/' + doc)
@@ -55,10 +62,19 @@ def scrape(endpoint, auth, root_id):
                 cover_id = upload_document(
                     pub_data, issue_data['pdf'], cover_name)
 
+                if cover_id is None:
+                    cover_article = issue_data['articles'][0]
+
+                    cover_id = upload_document(
+                        pub_data,
+                        cover_article['pdf'],
+                        cover_name + ': ' + cover_article['title']
+                    )
+
                 issue_resource = post_to('issues/multi', json={
                     'slug': slugify(issue_data['title']),
                     'title': issue_data['title'],
-                    'publication_date': issue_data['date'],
+                    'publication_date': issue_data.get('date'),
                     'issue_cover': cover_id,
                     'parent': pub_resource['id'],
                     'issue': issue_data.get('issue'),
@@ -101,9 +117,17 @@ def scrape(endpoint, auth, root_id):
                     'tags': ()
                 })
 
-    upload_publication(crawl_7days())
-    upload_publication(crawl_blackdwarf())
-    upload_publication(crawl_newreasoner())
+    # upload_publication(crawl_7days())
+    # upload_publication(crawl_blackdwarf())
+    upload_publication(crawl_newuniversity())
+    upload_publication(crawl_redrag())
+    upload_publication(crawl_authors_and_titles('nr_meta', 'New Reasoner'))
+    upload_publication(crawl_authors_and_titles(
+        'mt', 'Marxism Today', get_mt_covers()))
+    upload_publication(crawl_authors_and_titles(
+        'soundings', 'Soundings', get_issue_cover('soundings')))
+    upload_publication(crawl_authors_and_titles(
+        'ulr_meta', 'Universities & Left Review', get_issue_cover('ulr')))
 
 
 def prep_json(obj):
@@ -139,6 +163,73 @@ def crawl_7days():
     }
 
 
+def crawl_newuniversity():
+    html = parse_html(get_root('newuniversity'))
+
+    root = html.find('table').find_all('td')[1]
+    stream = extract_stream(root)
+
+    return {
+        'title': 'New University',
+        'path': get_root('newuniversity'),
+        'type': 'multi',
+        'issues': ps.parse(ps.multiple(parse_issue_newuniversity), stream)
+    }
+
+
+def crawl_authors_and_titles(root, pub_title, get_cover=lambda *args, **kwargs: None):
+    indexdir = get_root(f'authorsandtitles/{root}', '')
+    issues = defaultdict(lambda: [])
+
+    for filename in os.listdir(indexdir):
+        if not filename.endswith('.htm'):
+            continue
+
+        html = parse_html(get_root('authorsandtitles/' + root, '/' + filename))
+        table = html.find('table')
+        if table is None:
+            continue
+
+        text = ps.trimmed(table)
+
+        def keyword(kw):
+            return extract_group(f'{kw} ?(.*?) ?(author:|source:|title:|$)', text)
+
+        author = keyword('author:')
+        source = keyword('source:')
+        title = keyword('title:')
+        pdf = table.find('embed')['src']
+        assert source and (title or author) and pdf
+        assert path.exists(indexdir + '/' + pdf)
+
+        issues[source].append({
+            'author': author,
+            'title': title,
+            'pdf': pdf
+        })
+
+    def to_issue(source, articles):
+        assert extract_date(source)
+        issue = extract_group(r'issue (\d+)', source, int)
+
+        return {
+            'title': source.replace(pub_title, '').strip(),
+            'date': extract_date(source),
+            'issue': issue,
+            'articles': articles,
+            'pdf': get_cover(date=extract_date(source), issue=issue)
+        }
+
+    return {
+        'title': pub_title,
+        'path': indexdir + '/index.htm',
+        'type': 'multi',
+        'issues': tuple(
+            to_issue(source, articles) for source, articles in issues.items()
+        )
+    }
+
+
 def crawl_blackdwarf():
     html = parse_html(get_root('blackdwarf'))
     root = html.find('table').find_all('td')[1].find_all('p')[1]
@@ -168,10 +259,90 @@ def crawl_newreasoner():
     }
 
 
-def get_root(slug):
+def crawl_redrag():
+    html = parse_html(get_root('redrag'))
+
+    root = html.find('table').find_all('td')[1]
+    stream = extract_stream(root)
+
+    return {
+        'title': 'Red Rag',
+        'path': get_root('redrag'),
+        'type': 'multi',
+        'issues': ps.parse(ps.multiple(parse_issue_redrag), stream)
+    }
+
+
+def get_mt_covers():
+    base = 'http://banmarchive.org.uk/collections/mt/nosearchable/'
+    res = requests.get(base)
+    html = res.text
+    table = BeautifulSoup(html, 'html.parser').find('ul')
+
+    def is_cover_for_date(date: datetime.date, text: str):
+        month = f'0{date.month}' if date.month < 10 else str(date.month)
+        year = str(date.year % 100)
+
+        return 'cov' in text.lower() and month in text and year in text
+
+    def download(url: str):
+        tmpfile = get_tmp(url.replace('/', '__'))
+
+        if not os.path.exists(tmpfile):
+            res = requests.get(base + url)
+
+            with open(tmpfile, 'wb') as f:
+                for chunk in res.iter_content(chunk_size=512 * 1024):
+                    if chunk:
+                        f.write(chunk)
+
+        return '../../../../' + tmpfile
+
+    def get_mt_cover(date: datetime.date, **kwargs):
+        return next(download(a['href']) for a in table.find_all('a') if is_cover_for_date(date, ps.trimmed(a)))
+
+    return get_mt_cover
+
+
+def get_issue_cover(slug):
+    base = f'website/collections/{slug}/'
+    covers = os.listdir(base)
+
+    def is_cover_for_issue(issue: int, text: str):
+        opts = (f'{issue}_', f'0{issue}_', f'00{issue}_')
+        if not 'cov' in text.lower():
+            return False
+
+        return bool(
+            next(
+                (o for o in opts if o in text),
+                None
+            )
+        )
+
+    def get_cover(issue: int = None, **kwargs):
+        return next(
+            (f'../../{slug}/' +
+             file for file in covers if is_cover_for_issue(issue, file)),
+            None
+        )
+
+    return get_cover
+
+
+def get_tmp(slug):
+    try:
+        os.mkdir('.tmp')
+    except:
+        pass
+
+    return f'.tmp/{slug}'
+
+
+def get_root(slug, file='/index.htm'):
     root = settings.BASE_DIR + '/website'
     publication_path = root + '/collections/' + slug
-    return publication_path + '/index.htm'
+    return publication_path + file
 
 
 def parse_html(path):
@@ -180,19 +351,33 @@ def parse_html(path):
 
 
 def extract_stream(root):
-    internal_links = root.find_all(
-        lambda node: node.name == 'a' and not node.attrs.get('href', '').endswith('.pdf'))
-    whitespace = root.find_all(lambda node: node.get_text().strip() == '')
-
-    for node in internal_links + whitespace:
-        node.decompose()
+    def matches(d, sel):
+        return d.name == sel or d.find(sel)
 
     def should_strip(d):
+        if isinstance(d, Comment):
+            return True
+
         if getattr(d, 'name') == 'br':
+            return False
+
+        if matches(d, 'embed'):
             return False
 
         text = ps.trimmed(d)
         return text in ('', ';')
+
+    internal_links = root.find_all(
+        lambda node: node.name == 'a' and not node.attrs.get('href', '').endswith('.pdf'))
+
+    whitespace = root.find_all(
+        lambda node: node.name != 'embed' and node.get_text().strip() == '')
+
+    for node in internal_links + whitespace:
+        if matches(node, 'embed'):
+            continue
+
+        node.decompose()
 
     stream = list(x for x in root.descendants if not should_strip(x))
     stripped = list(x for x in root.descendants if should_strip(x))
@@ -204,7 +389,7 @@ def extract_stream(root):
             if hasattr(d, 'parent'):
                 d.extract()
 
-    return stream
+    return list(x for x in stream if not isinstance(x, str) or x.strip() != '')
 
 
 parse_article_nr_a = ps.mapped(
@@ -289,6 +474,70 @@ parse_issue_7days = ps.mapped(
     }
 )
 
+parse_article_newuniversity = ps.mapped(
+    ps.sequence(
+        ps.parse_pdf_link,
+        ps.optional(ps.parse_text)
+    ),
+    lambda link, author: {
+        'title': link['content'],
+        'pdf': link['href'],
+        'author': author
+    }
+)
+
+parse_article_redrag = ps.any_of(
+    ps.mapped(
+        ps.sequence(ps.parse_pdf_link),
+        lambda link: {
+            'title': link['content'],
+            'pdf': link['href'],
+        }
+    ),
+    ps.mapped(
+        ps.sequence(
+            ps.element('em'),
+            ps.parse_pdf_link,
+        ),
+        lambda author, link: {
+            'title': link['content'],
+            'pdf': link['href'],
+            'author': author
+        }
+    ),
+)
+
+ISSUE_NU = re.compile(r'issue\s+(\d+)', re.IGNORECASE)
+DATE_NU = re.compile(r'\w+ +19\d\d', re.IGNORECASE)
+parse_issue_newuniversity = ps.mapped(
+    ps.header_body(
+        ps.element(lambda e: ISSUE_NU.search(ps.trimmed(e))),
+        parse_article_newuniversity,
+    ),
+    lambda title, articles: {
+        'title': title,
+        'date': extract_date(title),
+        'pdf': articles[0]['pdf'],
+        'issue': extract_group(ISSUE_NU, title, int),
+        'articles': articles[1:]
+    }
+)
+
+ISSUE_RR = re.compile(r'volume\s+(\d+)', re.IGNORECASE)
+parse_issue_redrag = ps.mapped(
+    ps.header_body(
+        ps.element(lambda e: ISSUE_RR.search(ps.trimmed(e))),
+        parse_article_redrag,
+    ),
+    lambda title, articles: {
+        'title': title,
+        'pdf': articles[0]['pdf'],
+        'issue': extract_group(ISSUE_RR, title, int),
+        'volume': extract_group(ISSUE_RR, title, int),
+        'articles': articles[1:]
+    }
+)
+
 parse_simple_issue = ps.mapped(
     ps.sequence(
         ps.parse_pdf_link
@@ -310,10 +559,23 @@ def extract_date(datestr: str):
     for sep in seps:
         components = datestr.lower().split(sep)
         for c in components:
-            dt = dateparser.parse(c.strip())
+            date = parse_date(c)
+            if date is not None:
+                return date
 
-            if dt is not None and dt.year != datetime.date.today().year:
-                return dt.date()
+    date = r"(january|february|march|april|may|june|july|august|september|october|november|december) +\d+"
+    hits = re.search(date, datestr, re.IGNORECASE)
+    if hits is not None and hits.group(0):
+        return parse_date('1 ' + hits.group(0))
+
+    return ps.seasonal_date(datestr)
+
+
+def parse_date(str):
+    dt = dateparser.parse(str.strip())
+
+    if dt is not None and dt.year != datetime.date.today().year:
+        return dt.date()
 
 
 def remove(patterns, string):
@@ -324,11 +586,14 @@ def remove(patterns, string):
 
 
 def extract_group(patterns, string, fn=None, i=1):
-    if isinstance(patterns, str):
+    if isinstance(patterns, str) or isinstance(patterns, re.Pattern):
         patterns = (patterns,)
 
     for pattern in patterns:
-        match = re.search(pattern, string, re.IGNORECASE)
+        if isinstance(pattern, re.Pattern):
+            match = pattern.search(string)
+        else:
+            match = re.search(pattern, string, re.IGNORECASE)
         if match is not None:
             g = match.group(i)
             return g if fn is None else fn(g)
