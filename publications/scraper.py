@@ -1,9 +1,11 @@
 from collections import defaultdict
 import os
 import re
+import logging
 from urllib.parse import unquote, urlencode
 from os import path
 import datetime
+from time import sleep
 
 import dateparser
 import requests
@@ -17,16 +19,31 @@ from helpers import parsing as ps
 def scrape(endpoint, auth, root_id):
     def post_to(route, json=None, **kwargs):
         url = endpoint + '/api/' + route + '/'
-        print('POST', url, json if json else kwargs.get('data'))
+        attempt = 0
 
-        res = requests.post(url, json=prep_json(json), auth=auth, **kwargs)
-        if not res.ok:
-            if res.status_code == 500:
-                raise IOError('Application Error')
+        while True:
+            attempt += 1
+            print('POST', url, json if json else kwargs.get('data'))
 
-            raise IOError(res.text)
+            try:
+                res = requests.post(url, json=prep_json(
+                    json), auth=auth, timeout=60, **kwargs)
+            except Exception:
+                sleep((2 ** attempt) * 0.5)
+                continue
 
-        return res.json()
+            if not res.ok:
+                if res.status_code == 500:
+                    raise IOError('Application Error')
+
+                if res.status_code > 500:
+                    sleep((2 ** attempt) * 0.5)
+                    continue
+
+                logging.error(res.text)
+                raise IOError(f'Http {res.status_code}')
+
+            return res.json()
 
     def upload_document(pub, doc, title):
         if doc is None:
@@ -40,10 +57,17 @@ def scrape(endpoint, auth, root_id):
         pathroot = path.dirname(pub['path'])
         docpath = unquote(pathroot + '/' + doc)
 
-        with open(docpath, 'rb') as file:
-            doc_resource = post_to('documents', data={
+        def doit(file):
+            return post_to('documents', data={
                 'title': title,
             }, files={'file': file})
+
+        try:
+            with open(docpath, 'rb') as file:
+                doc_resource = doit(file)
+        except FileNotFoundError:
+            with open(unquote(docpath), 'rb') as file:
+                doc_resource = doit(file)
 
         return doc_resource['id']
 
@@ -90,8 +114,8 @@ def scrape(endpoint, auth, root_id):
                         pub_data, article_data['pdf'], doc_name)
 
                     post_to('articles', json={
-                        'slug': slugify(article_data['title']),
-                        'title': article_data['title'],
+                        'slug': slugify(article_data['title'] or article_data.get('author')),
+                        'title': article_data['title'] or '...',
                         'article_content': content_id,
                         'parent': issue_resource['id'],
                         'intro_text': article_data.get('intro'),
@@ -119,9 +143,9 @@ def scrape(endpoint, auth, root_id):
 
     # upload_publication(crawl_7days())
     # upload_publication(crawl_blackdwarf())
-    upload_publication(crawl_newuniversity())
-    upload_publication(crawl_redrag())
-    upload_publication(crawl_authors_and_titles('nr_meta', 'New Reasoner'))
+    # upload_publication(crawl_newuniversity())
+    # upload_publication(crawl_redrag())
+    # upload_publication(crawl_authors_and_titles('nr_meta', 'New Reasoner'))
     upload_publication(crawl_authors_and_titles(
         'mt', 'Marxism Today', get_mt_covers()))
     upload_publication(crawl_authors_and_titles(
