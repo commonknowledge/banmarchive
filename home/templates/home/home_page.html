@@ -1,12 +1,25 @@
 {% extends "base.html" %}
-{% load static %}
-
-{% block extra_css %}
-{% endblock extra_css %}
+{% load static wagtailimages_tags publications_tags search_tags %}
 
 {% block content %}
 
 <main class="container">
+  <section>
+    <h1>
+      Amiel Melburn Archive is an online database of socialist and radical writings.
+    </h1>
+
+    <div class="card-grid">
+      {% for issue in self.issue_sample %}
+      {% issue_card issue %}
+      {% endfor %}
+    </div>
+  </section>
+
+  <section>
+    {% search_block %}
+  </section>
+
   <ul class="list-group">
     {% for pub in self.publications %}
       <li class="list-group-item">

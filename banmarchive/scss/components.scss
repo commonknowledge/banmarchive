@@ -13,3 +13,8 @@
 .publication-image {
   object-fit: contain;
 }
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+}

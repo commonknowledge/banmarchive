@@ -12,7 +12,7 @@ from wagtail.documents.edit_handlers import DocumentChooserPanel
 from wagtail.images.edit_handlers import ImageChooserPanel
 from taggit.models import TaggedItemBase
 
-from helpers.content import get_children_of_type
+from helpers.content import get_children_of_type, random_model
 from helpers.thumbnail_generator import PdfThumbnailMixin
 from search.models import IndexedPdfMixin
 
@@ -51,13 +51,8 @@ class Publication(AbstractArchiveItem):
         return get_children_of_type(self, SimpleIssue, MultiArticleIssue)
 
     @property
-    def cover_image(self):
-        image_count = self.issues.count()
-        if image_count == 0:
-            return None
-
-        index = randint(0, image_count - 1)
-        return self.issues[index].specific.cover_image
+    def random_issue(self):
+        return random_model(self.issues)
 
 
 class AbstractIssue(PdfThumbnailMixin, AbstractArchiveItem):

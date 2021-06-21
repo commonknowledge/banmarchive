@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static wagtailcore_tags %}
+{% load static wagtailcore_tags search_tags %}
 
 {% block body_class %}template-searchresults{% endblock %}
 
@@ -9,11 +9,8 @@
     <main class="container">
         <h1 class="mb-3">Search</h1>
 
-        <form action="{% url 'search' %}" autocomplete="off" method="get" class="input-group mb-3">
-            <input type="text" name="query" class="form-control" placeholder="eg: ‘feminism’" aria-label="Search query" aria-describedby="button-addon2">
-            
-            <button class="btn btn-primary" type="submit" id="button-addon2">Search</button>
-        </form>
+        {% search_block %}
+
 
         {% if search_results %}
             <h2>{{total_count}} results for {{search_query}}</h2>
