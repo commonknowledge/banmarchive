@@ -1,5 +1,11 @@
 .logo {
-  height: 60px;
+  mix-blend-mode: multiply;
+  height: 80px;
+}
+
+.logo-small {
+  mix-blend-mode: multiply;
+  height: 103px;
 }
 
 .search-result-item:not(:last-of-type) {
@@ -12,9 +18,35 @@
 
 .publication-image {
   object-fit: contain;
+  border: 1px solid $border-color;
+  padding: map-get($spacers, 4);
+  background-color: white;
 }
 
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: map-get($spacers, 4);
+}
+
+.card {
+  background-color: unset;
+}
+
+.showcase {
+  max-width: 1440px;
+}
+
+a.card {
+  color: unset;
+  font-style: unset;
+  text-decoration: unset;
+
+  .card-body {
+    padding: map-get($spacers, 2) 0;
+  }
+
+  &:hover .card-img-top {
+    background-color: $primary-hover-light;
+  }
 }

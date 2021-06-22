@@ -2,7 +2,7 @@ from collections import defaultdict
 import os
 import re
 import logging
-from urllib.parse import unquote, urlencode
+from urllib.parse import quote, unquote, urlencode
 from os import path
 import datetime
 from time import sleep
@@ -66,7 +66,7 @@ def scrape(endpoint, auth, root_id):
             with open(docpath, 'rb') as file:
                 doc_resource = doit(file)
         except FileNotFoundError:
-            with open(unquote(docpath), 'rb') as file:
+            with open(quote(docpath), 'rb') as file:
                 doc_resource = doit(file)
 
         return doc_resource['id']

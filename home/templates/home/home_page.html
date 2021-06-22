@@ -3,32 +3,70 @@
 
 {% block content %}
 
-<main class="container">
-  <section>
-    <h1>
+<main>
+  <section class="container pb-5">
+    <h1 class="text-center my-5">
       Amiel Melburn Archive is an online database of socialist and radical writings.
     </h1>
+  </section>
 
-    <div class="card-grid">
+  <section class="container-fluid showcase px-5">
+    <div class="card-grid mb-5">
       {% for issue in self.issue_sample %}
       {% issue_card issue %}
       {% endfor %}
     </div>
   </section>
 
-  <section>
-    {% search_block %}
-  </section>
+  <div class="bg-white">
+    <section class="container py-5">
+      <form action="{% url 'search' %}" autocomplete="off" method="get" class="row">
+        <div class="col-6">
+          <label class="form-label" for="search">Search</label>
+          <input id="search" type="text" name="query" class="form-control">
+        </div>
 
-  <ul class="list-group">
-    {% for pub in self.publications %}
-      <li class="list-group-item">
-        <a href={{pub.url}}>
-          {{pub.title}}
-        </a>
-      </li>
-    {% endfor %}
-  </ul>
+        <div class="col-4">
+          <label class="form-label" for="search-filter">Filter by</label>
+          <select class="form-control" id="search-filter">
+
+          </select>
+        </div>
+        
+        <div class="col d-flex flex-row align-items-end">
+          <button class="btn btn-primary flex-grow-1" type="submit" id="button-addon2">Search</button>
+        </div>
+      </form>
+
+      <div class="row mt-3">
+        <div class="col-6">
+          Example searches:
+          <a class="d-inline-block ms-1" href="/search?query=feminism">feminism</a>
+          <a class="d-inline-block ms-1" href="/search?query=black+power">black power</a>
+          <a class="d-inline-block ms-1" href="/search?query=stuart+hall">stuart hall</a>
+        </div>
+
+        <div class="col">
+
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <section class="container py-4">
+    <h3 class="pb-2">Publications in the archive</h3>
+    
+    <ul class="list-group">
+      {% for pub in self.publications %}
+        <li class="list-group-item list-group-item-link">
+          <a href={{pub.url}}>
+            {{pub.title}}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
 </main>
 
 {% endblock content %}

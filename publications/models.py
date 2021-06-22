@@ -31,7 +31,7 @@ class AbstractArchiveItem(Page):
 
     @property
     def parent(self):
-        return self.get_parent()
+        return self.get_parent().specific
 
 
 class Publication(AbstractArchiveItem):
@@ -53,6 +53,10 @@ class Publication(AbstractArchiveItem):
     @property
     def random_issue(self):
         return random_model(self.issues)
+
+    @property
+    def search_meta_info(self):
+        return 'Publication'
 
 
 class AbstractIssue(PdfThumbnailMixin, AbstractArchiveItem):
@@ -131,6 +135,14 @@ class SimpleIssue(IndexedPdfMixin, AbstractIssue):
     @property
     def pdf(self):
         return self.issue_content
+
+    @property
+    def publication(self):
+        return self.parent
+
+    @property
+    def search_meta_info(self):
+        return f'{self.publication.title}'
 
 
 class MultiArticleIssue(AbstractIssue):
@@ -217,7 +229,11 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
     # Data
     @property
     def issue(self):
-        return self.get_parent().specific
+        return self.parent
+
+    @property
+    def publication(self):
+        return self.parent.parent
 
     @property
     def articles(self):
@@ -226,3 +242,7 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
     @property
     def pdf(self):
         return self.article_content
+
+    @property
+    def search_meta_info(self):
+        return f'{self.publication.title} {self.issue.title}'
