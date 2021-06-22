@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static webpack_bundle util_tags %}
+
+
+{% block extra_css %}
+{% webpack_bundle "pdf" "css" %}
+{% endblock %}
+
+
+{% block body_class %}overflow-hidden h-100{% endblock %}
+
+
+{% block content %}
+<div class="container my-5">
+  <h1>
+    {{ self.publication.title }} {{ self.issue.title }}
+  </h1>
+</div>
+
+<main class="d-flex flex-row flex-basis-0 overflow-hidden flex-grow-1 align-items-stretch">
+  {% if self.shows_contents %}
+    <div class="col-4 px-5 py-4 overflow-y-auto">
+      <nav class="nav flex-column">
+        <h2 class="heading-small mb-3 text-secondary">Contents</h2>
+
+        {% for article in self.articles %}
+          <li class="nav-item mb-3">
+            {% bs_link label=article.title|lower href=article.url class="contents-link" %}
+          </li>
+        {% endfor %}
+      </nav>
+    </div>
+  {% endif %}
+
+  <div data-pdf="{{ self.pdf.url }}" class="col bg-light pdf-container">
+  </div>
+</main>
+{% endblock %}
+
+
+{% block spacer %}
+{% endblock %}
+
+
+{% block extra_js %}
+{% webpack_bundle "pdf" %}
+{% endblock %}

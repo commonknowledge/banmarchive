@@ -63,6 +63,8 @@ class AbstractIssue(PdfThumbnailMixin, AbstractArchiveItem):
     class Meta:
         abstract = True
 
+    shows_contents = False
+
     # Config
     parent_page_types = ('Publication',)
 
@@ -114,6 +116,8 @@ class SimpleIssue(IndexedPdfMixin, AbstractIssue):
         index.SearchField('text_content'),
     ]
 
+    template = 'publications/issue.html'
+
     pdf_text_mapping = {
         'issue_content': 'text_content'
     }
@@ -149,6 +153,10 @@ class MultiArticleIssue(AbstractIssue):
     # Config
     thumbnail_attribute = 'cover_image'
 
+    template = 'publications/issue.html'
+
+    shows_contents = True
+
     content_panels = [DocumentChooserPanel('issue_cover')] + \
         AbstractIssue.content_panels
 
@@ -178,6 +186,8 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
     # Config
     thumbnail_attribute = 'page_image'
 
+    shows_contents = True
+
     pdf_text_mapping = {
         'article_content': 'text_content'
     }
@@ -188,7 +198,7 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
         index.FilterField('tags'),
     ]
 
-    template = 'publications/multi_article_issue.html'
+    template = 'publications/issue.html'
 
     parent_page_types = ('MultiArticleIssue',)
 

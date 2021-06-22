@@ -50,3 +50,20 @@ a.card {
     background-color: $primary-hover-light;
   }
 }
+
+
+.flex-basis-0 {
+  flex-basis: 0;
+}
+
+.contents-link {
+  text-transform: capitalize;
+
+  &.active {
+    color: unset;
+    font-style: unset;
+    text-decoration: unset;
+
+    @include heading-small;
+  }
+}
