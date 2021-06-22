@@ -1,12 +1,33 @@
 {% extends "base.html" %}
-{% load wagtailimages_tags %}
+{% load wagtailcore_tags wagtailimages_tags %}
 
 {% block content %}
-<div class="container mb-3">
-  <h1>
+<header class="container pb-5">
+  <h1 class="mt-5 mb-4">
     {{ self.title }}
   </h1>
-</div>
+
+  {% if self.short_introduction %}
+    <div class="row">
+      <div class="col-9">
+        {{ self.short_introduction|richtext }}
+      </div>
+    </div>
+  {% endif %}
+
+  {% if self.introduction_article %}
+    <div class="row">
+      <div class="col-9">
+        <a href="{{ self.introduction_article.url }}">
+          Read introduction
+          {% if self.introduction_article.author %}
+            by {{ self.introduction_article.author }}
+          {% endif %}
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</header>
 
 <main class="container">
   <div class="row">
@@ -16,7 +37,7 @@
           {% image issue.specific.cover_image height-364 class="card-img-top publication-image" %}
 
           <div class="card-body">
-            <h5 class="card-title">{{ issue.title }}</h5>
+            <h4 class="card-title">{{ issue.title }}</h4>
           </div>
         </a>
       </div>

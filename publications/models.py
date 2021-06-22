@@ -1,12 +1,13 @@
 from random import randint
 
 from django.db import models
+from django.db.models.fields import related
 from modelcluster.fields import ParentalKey
 from modelcluster.contrib.taggit import ClusterTaggableManager
 from wagtail.core.models import Page
 from wagtail.core.fields import RichTextField
 from wagtail.documents.models import Document
-from wagtail.admin.edit_handlers import FieldPanel, MultiFieldPanel, InlinePanel
+from wagtail.admin.edit_handlers import FieldPanel, MultiFieldPanel, InlinePanel, PageChooserPanel
 from wagtail.search import index
 from wagtail.documents.edit_handlers import DocumentChooserPanel
 from wagtail.images.edit_handlers import ImageChooserPanel
@@ -38,12 +39,17 @@ class Publication(AbstractArchiveItem):
     # Config
     parent_page_types = ('home.HomePage',)
 
+    content_panels = AbstractArchiveItem.content_panels + [
+        FieldPanel('tags'),
+        FieldPanel('short_introduction'),
+        PageChooserPanel('introduction_article'),
+    ]
+
     # Page fields
     tags = ClusterTaggableManager(through=PageTag, blank=True)
-    introduction_content = RichTextField(blank=True, null=True)
-    introduction_author = models.CharField(
-        max_length=1024, blank=True, null=True)
-    introduction_date = models.DateField(blank=True, null=True)
+    short_introduction = RichTextField(blank=True)
+    introduction_article = models.OneToOneField(
+        'home.ArticlePage', blank=True, null=True, related_name='introduction_for_publication', on_delete=models.SET_NULL)
 
     # Data
     @property

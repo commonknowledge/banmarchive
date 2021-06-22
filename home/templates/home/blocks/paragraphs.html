@@ -1,0 +1,12 @@
+{% load wagtailcore_tags wagtailimages_tags %}
+
+<div class="row">
+  <div class="col-9">
+    {{self.content}}
+  </div>
+  <div class="col-3">
+    {% for img in self.side_images %}
+      {% image img width-197 class="mb-5" %}
+    {% endfor %}
+  </div>
+</div>

@@ -146,7 +146,7 @@ const projectHeight = ({ viewportWidth, zoom = 1, aspectRatio }) => {
 
 const LoadingIndicator = () => (
   <div className="center-screen">
-    <div className="spinner-grow text-primary" role="status">
+    <div className="spinner-grow text-brand1" role="status">
       <span className="visually-hidden">Loading...</span>
     </div>
   </div>

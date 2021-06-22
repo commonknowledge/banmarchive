@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block content %}
+<header class="container">
+  <h1 class="mt-5">
+    {{ self.displayed_title }}
+  </h1>
+
+  {% if self.author %}
+    <div class="mt-2 text-secondary">
+      by {{self.author}}{% if self.date %}, {{self.date|date:'F Y'}}{% endif %}
+    </div>
+  {% endif %}
+</header>
+  
+<main class="container py-5 mb-5">
+  {{ self.content }}
+
+
+  {% if self.author %}
+    <div class="mt-5 text-secondary">
+      {{self.author}}{% if self.author_role %} ({{self.author_role}}){% endif %}
+    </div>
+  {% endif %}
+</main>
+{% endblock %}

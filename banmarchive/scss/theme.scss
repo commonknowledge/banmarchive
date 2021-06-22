@@ -3,10 +3,11 @@ $body-bg: #FBFBFB;
 $primary: #02808B;
 $secondary: #727272;
 $panel: #ECF0F1;
-$primary-hover-light: rgba(2, 128, 139, 0.1);
-$border-color: #BDC3C7;
+$primary-hover-light: #02808b1a;
+$brand1: #4C2023;
 $custom-colors: (
-  'panel': $panel
+  'panel': $panel,
+  'brand1': $brand1
 );
 $dark: #333333;
 
