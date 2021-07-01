@@ -184,7 +184,7 @@ def get_advanced_search_boolean_filter(search_terms):
         if value:
             and_q = add_to_query(
                 and_q,
-                keywords__contains=value,
+                **get_advanced_search_term(op, value),
                 negate=(bool_op == 'NOT'))
 
     or_q = None
@@ -196,7 +196,7 @@ def get_advanced_search_boolean_filter(search_terms):
         if value:
             or_q = add_to_query(
                 or_q,
-                keywords__contains=value,
+                **get_advanced_search_term(op, value),
                 op='or')
 
     return and_all(and_q, or_q)
@@ -229,9 +229,9 @@ def add_to_query(lhs, op='and', negate=False, **kwargs):
 
 def get_advanced_search_term(match, value):
     if match == 'contains':
-        return {'keywords__0': 'tags', 'keywords__1__iregex': value}
+        return {'keywords__iregex': value}
     else:
-        return {'keywords__0': 'tags', 'keywords__1': value}
+        return {'keywords__contains': value}
 
 
 def get_arr(request, key):
