@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% load static wagtailcore_tags search_tags %}
+
+{% block title %}Search{% endblock %}
+
+{% block content %}
+    <header class="container py-4">
+        <h1 class="mb-2">Advanced search</h1>
+
+        <form action="{% url 'search' %}" autocomplete="off" method="get">
+            <input type="hidden" name="mode" value="advanced">
+
+            <div class="row mt-5 microcopy fw-bold">
+                <div class="col-3">
+                    Filter by
+                </div>
+                <div class="col-3">
+                    Published date
+                </div>
+                <div class="col-6">
+                    Author
+                </div>
+            </div>
+
+            <div class="row mt-2">
+              <div class="col-3">
+                  <select name="publication" value="{{filter.publication}}" class="form-select">
+                    <option value="">whole archive</option>
+                    {% for pub in publications %}
+                    <option value="{{pub.id}}">{{pub.title}}</option>
+                    {% endfor %}
+                  </select>
+              </div>
+
+              <div class="col-3">
+                <select name="decade" value="{{filter.decade}}" class="form-select">
+                  <option value="">any decade</option>
+                  {% for decade in decades %}
+                  <option value="{{decade}}">{{decade}}s</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="col-6">
+                  <input name="author" class="form-control" value="{{filter.author}}">
+              </div>
+            </div>
+
+            <div class="row microcopy fw-bold mt-5 mb-2">
+              <div class="col-6">
+              </div>
+              <div class="col-6">
+                  Search term
+              </div>
+            </div>
+
+            {% for term in terms %}
+            <div rowfilter class="row fw-bold mb-4">
+              <div class="col-3">
+                  <select name="bools" value="{{term.bool}}" data-default="AND" class="form-select">
+                    <option value="AND">AND</option>
+                    <option value="OR">OR</option>
+                    <option value="NOT">NOT</option>
+                  </select>
+              </div>
+
+              <div class="col-3">
+                <select name="ops" value="{{term.op}}" data-default="contains" class="form-select">
+                  <option value="contains">contains</option>
+                  <option value="is">is (exact)</option>
+                </select>
+              </div>
+              <div class="col-6">
+                  <input name="values" class="form-control" value="{{term.value}}">
+              </div>
+            </div>
+            {% empty %}
+            <div rowfilter class="row fw-bold mb-4">
+              <div class="col-3">
+                  <select name="bools" data-default="AND" class="form-select">
+                    <option value="AND">AND</option>
+                    <option value="OR">OR</option>
+                    <option value="NOT">NOT</option>
+                  </select>
+              </div>
+
+              <div class="col-3">
+                <select name="ops" data-default="contains" class="form-select">
+                  <option value="contains">contains</option>
+                  <option value="is">is (exact)</option>
+                </select>
+              </div>
+              <div class="col-6">
+                  <input name="values" class="form-control" value="">
+              </div>
+            </div>
+            {% endfor %}
+
+            <div class="row mt-5">
+                <button class="btn btn-primary col-3" type="submit" id="search-btn">Search</button>
+
+                <div class="col-3">
+                  <button class="btn" type="button" id="clear-btn">Clear</button>
+                </div>
+
+                <div class="col-6 d-flex flex-row align-items-center justify-content-end">
+                  <a href="#" id="add-line">Add a new line</a>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-3">
+                  <a href="/search">
+                    Simple search
+                  </a>
+                </div>
+            </div>
+        </form>
+    </header>
+
+    <main class="container py-5">
+
+        {% if search_results %}
+            <h2 class="mb-3"><span class="text-secondary">{{paginator.count}} results</span></h2>
+
+            <div>
+                {% for result in search_results %}
+                    <div class="search-result-item py-4">
+                        <h3 class="heading-medium fw-normal mb-2">
+                            <a href="{{ result.url }}">{{ result.title }}</a>
+                        </h3>
+                        {% if result.specific.search_summary %}
+                            {{ result.specific.search_summary }}
+                        {% endif %}
+
+                        <div class="mt-3 microcopy">
+                            {{result.specific.search_meta_info}}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+    
+            {% if paginator.has_previous %}
+                <a href="{% url 'search' %}?query={{ search_query|urlencode }}&amp;page={{ search_results.previous_page_number }}">Previous</a>
+            {% endif %}
+    
+            {% if paginator.has_next %}
+                <a href="{% url 'search' %}?query={{ search_query|urlencode }}&amp;page={{ search_results.next_page_number }}">Next</a>
+            {% endif %}
+        {% else %}
+            <h2 class="mb-3"><span class="text-secondary">No results</span></h2>
+
+            <p>
+                You could try:
+            </p>
+            <ul>
+                <li>removing filters</li>
+                <li>searching for something less specific</li>
+                <li>double-checking your spelling</li>
+            </ul>
+            <p>
+                Or <a href="/">browse the archive</a>
+            </p>
+        {% endif %}
+    </main>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+  (function bindSearch() {
+    'use strict';
+
+    Array.from(document.querySelectorAll('select')).forEach(function (el) {
+      const selectedIndex = Array.from(el.children).findIndex(function (child) {
+        return child.value === el.attributes.value.value
+      })
+
+      el.selectedIndex = selectedIndex === -1 ? 0 : selectedIndex
+    })
+
+    const addLine = document.getElementById('add-line');
+    const clear = document.getElementById('clear-btn');
+
+    function resetFields(el) {
+      const fields = Array.from(el.querySelectorAll('input,select'));
+      fields.forEach(function (field) {
+        if (field.type != 'hidden') {
+          field.value = field.dataset.default || ""
+        }
+      })
+    }
+
+    addLine.onclick = function addLines(event) {
+      event.preventDefault();
+      const conditions = document.querySelectorAll('[rowfilter]');
+      console.log(conditions)
+
+      const prev = conditions[conditions.length - 1];
+      const newline = prev.cloneNode(true);
+
+      resetFields(newline)
+      prev.insertAdjacentElement('afterend', newline);
+    }
+
+    clear.onclick = function clear() {
+      const conditions = Array.from(document.querySelectorAll('[rowfilter]')).slice(1);
+      conditions.forEach(c => c.remove())
+      resetFields(document)
+    }
+  })()
+</script>
+{% endblock %}

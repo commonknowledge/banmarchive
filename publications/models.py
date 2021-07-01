@@ -2,6 +2,7 @@ from random import randint
 
 from django.db import models
 from django.db.models.fields import related
+from django.db.models.signals import post_save
 from modelcluster.fields import ParentalKey
 from modelcluster.contrib.taggit import ClusterTaggableManager
 from wagtail.core.models import Page
@@ -15,7 +16,7 @@ from taggit.models import TaggedItemBase
 
 from helpers.content import get_children_of_type, random_model
 from helpers.thumbnail_generator import PdfThumbnailMixin
-from search.models import IndexedPdfMixin
+from search.models import AdvancedSearchIndex, IndexedPdfMixin
 
 
 class PageTag(TaggedItemBase):
@@ -187,6 +188,13 @@ class MultiArticleIssue(AbstractIssue):
     def pdf(self):
         return self.issue_cover
 
+    def save(self, *args, generate_thumbnail, **kwargs):
+        for article in self.articles:
+            if article.publication_date != self.publication_date:
+                article.save()
+
+        return super().save(*args, generate_thumbnail=generate_thumbnail, **kwargs)
+
 
 class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
     # Config
@@ -244,11 +252,11 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
 
     # Data
     @property
-    def issue(self):
+    def issue(self) -> MultiArticleIssue:
         return self.parent
 
     @property
-    def publication(self):
+    def publication(self) -> Publication:
         return self.parent.parent
 
     @property
@@ -262,3 +270,27 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
     @property
     def search_meta_info(self):
         return f'{self.publication.title} {self.issue.title}'
+
+    @property
+    def search_summary(self):
+        sentences = (self.intro_text or self.text_content).split('.')
+        res = []
+
+        for s in sentences:
+            if len(res) > 60:
+                break
+
+            nextres = res + [s.strip()
+                             for s in s.split(' ') if len(s.strip()) > 0]
+            if len(nextres) > 80:
+                break
+
+            res = nextres
+            nextres[-1] += '.'
+
+        return ' '.join(res)
+
+
+post_save.connect(AdvancedSearchIndex._handle_post_save, sender=Article)
+post_save.connect(AdvancedSearchIndex._handle_post_save,
+                  sender=MultiArticleIssue)

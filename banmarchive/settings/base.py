@@ -192,7 +192,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 WAGTAILSEARCH_BACKENDS = {
     'default': {
         'BACKEND': 'wagtail.contrib.postgres_search.backend',
-        'AUTO_UPDATE': False,
+        'AUTO_UPDATE': True,
     }
 }
 

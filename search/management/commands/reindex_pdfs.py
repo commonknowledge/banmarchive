@@ -1,8 +1,11 @@
 import logging
 
+from django.db import transaction
+from publications.models import Article
+
 from django.core.management.base import BaseCommand
 
-from search.models import IndexedPdfMixinSubclasses
+from search.models import AdvancedSearchIndex, IndexedPdfMixinSubclasses
 
 
 class Command(BaseCommand):
@@ -15,6 +18,7 @@ class Command(BaseCommand):
             const=True
         )
 
+    @transaction.atomic
     def handle(self, *args, all=False, **kwargs):
         for cls in IndexedPdfMixinSubclasses:
             logging.info('Found %s instances of %s to index',
@@ -24,3 +28,6 @@ class Command(BaseCommand):
                 if not obj.has_indexed_pdf_content() or all:
                     logging.info('Reindexing %s', obj)
                     obj.reindex_pdf_content()
+
+        for article in Article.objects.all():
+            AdvancedSearchIndex.index(article)
