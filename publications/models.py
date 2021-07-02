@@ -1,8 +1,6 @@
-from random import randint
-
 from django.db import models
 from django.db.models.fields import related
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from modelcluster.fields import ParentalKey
 from modelcluster.contrib.taggit import ClusterTaggableManager
 from wagtail.core.models import Page
@@ -289,6 +287,15 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
             nextres[-1] += '.'
 
         return ' '.join(res)
+
+    def save(self, *args, **kwargs):
+        res = super().save(*args, **kwargs)
+
+        if self.tags.count() == 0:
+            print(keywords(self.text_content))
+            print(keywords(self.title))
+
+        return res
 
 
 post_save.connect(AdvancedSearchIndex._handle_post_save, sender=Article)
