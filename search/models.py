@@ -1,8 +1,9 @@
 from itertools import zip_longest
 import pickle
 import re
-from nltk.stem.wordnet import WordNetLemmatizer
+from functools import lru_cache
 
+from nltk.stem.wordnet import WordNetLemmatizer
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from wagtail.core.models import Page
 from django.contrib.postgres.indexes import GinIndex
@@ -88,6 +89,9 @@ class AdvancedSearchIndex(models.Model):
     page_id = models.ForeignKey(Page, on_delete=models.CASCADE)
     keywords = models.JSONField(default=list)
 
+    def __str__(self):
+        return str(self.page_id)
+
     @staticmethod
     def index(article):
         keywords = []
@@ -120,7 +124,8 @@ class AdvancedSearchIndex(models.Model):
         from publications.models import Article, MultiArticleIssue
 
         if sender == Article:
-            AdvancedSearchIndex.index(instance)
+            KeywordExtractor.article_extractor().fit_keywords(
+                Article.objects.filter(id=instance.id))
         elif sender == MultiArticleIssue:
             for article in instance.articles:
                 AdvancedSearchIndex.index(article)
@@ -198,6 +203,8 @@ class KeywordExtractor(models.Model):
         self.save()
 
     def fit_keywords(self, qs):
+        from publications.models import PageTag
+
         all_articles = qs.iterator()
         cv = pickle.loads(self.cv)
         tfidf_transformer = pickle.loads(self.tfidf_transformer)
@@ -260,6 +267,7 @@ class KeywordExtractor(models.Model):
                     keywords = get_article_keywords(article)
                     all_keywords.update(keywords)
                     article.tags.add(*keywords)
+                    AdvancedSearchIndex.index(article)
 
         self.keywords = sorted(all_keywords)
         self.save()

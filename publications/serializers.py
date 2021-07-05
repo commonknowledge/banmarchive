@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from taggit.models import Tag
 from wagtail.documents.models import Document
 from wagtail.search import queryset
 
@@ -7,8 +8,8 @@ from publications import models
 COMMON_PAGE_FIELDS = ('id', 'title', 'tags', 'slug', 'parent')
 
 
-class PageTagField(serializers.RelatedField):
-    queryset = models.PageTag.objects.all()
+class TagField(serializers.RelatedField):
+    queryset = Tag.objects.all()
 
     def to_representation(self, value):
         return value.name
@@ -29,7 +30,7 @@ class PublicationSerializer(serializers.ModelSerializer):
         model = models.Publication
         fields = COMMON_PAGE_FIELDS
 
-    tags = PageTagField(many=True, allow_empty=True)
+    tags = TagField(many=True, allow_empty=True)
     parent = serializers.PrimaryKeyRelatedField(
         queryset=models.Page.objects.all())
 
@@ -40,7 +41,7 @@ class AbstractIssueSerializer(serializers.ModelSerializer):
         fields = COMMON_PAGE_FIELDS + \
             ('publication_date', 'issue', 'volume', 'number')
 
-    tags = PageTagField(many=True, allow_empty=True)
+    tags = TagField(many=True, allow_empty=True)
     parent = serializers.PrimaryKeyRelatedField(
         queryset=models.Page.objects.all())
 
@@ -65,7 +66,7 @@ class ArticleSerializer(serializers.ModelSerializer):
         fields = COMMON_PAGE_FIELDS + \
             ('article_content', 'author_name', 'intro_text')
 
-    tags = PageTagField(many=True, allow_empty=True)
+    tags = TagField(many=True, allow_empty=True)
     article_content = serializers.PrimaryKeyRelatedField(
         queryset=Document.objects.all())
     parent = serializers.PrimaryKeyRelatedField(

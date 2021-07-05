@@ -59,6 +59,7 @@
       "args": [
         "keyword_extract"
       ],
+      "justMyCode": false,
       "django": true
     },
     {

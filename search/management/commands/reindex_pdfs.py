@@ -5,7 +5,7 @@ from publications.models import Article
 
 from django.core.management.base import BaseCommand
 
-from search.models import AdvancedSearchIndex, IndexedPdfMixinSubclasses
+from search.models import AdvancedSearchIndex, IndexedPdfMixinSubclasses, KeywordExtractor
 
 
 class Command(BaseCommand):
@@ -29,5 +29,4 @@ class Command(BaseCommand):
                     logging.info('Reindexing %s', obj)
                     obj.reindex_pdf_content()
 
-        for article in Article.objects.all():
-            AdvancedSearchIndex.index(article)
+        KeywordExtractor.article_extractor().fit_keywords(Article.objects.all())

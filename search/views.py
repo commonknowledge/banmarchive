@@ -22,7 +22,7 @@ def search(request):
     if mode == 'advanced':
         return advanced_search(request)
 
-    search_query = get_single(request, 'query')
+    search_query = request.GET.get('query')
 
     # Search
     if search_query:
@@ -106,9 +106,9 @@ def advanced_search(request):
     search_terms = tuple(
         {'bool': bool, 'op': op, 'value': value}
         for bool, op, value in zip(
-            get_arr(request, 'bools'),
-            get_arr(request, 'ops'),
-            get_arr(request, 'values')
+            request.GET.getlist('bools'),
+            request.GET.getlist('ops'),
+            request.GET.getlist('values')
         )
     )
 
@@ -118,9 +118,9 @@ def advanced_search(request):
     }
 
     if len(search_terms) > 0:
-        publication = get_single(request, 'publication')
-        decade = get_single(request, 'decade')
-        author = get_single(request, 'author')
+        publication = request.GET.get('publication')
+        decade = request.GET.get('decade')
+        author = request.GET.get('author')
 
         filter = and_all(
             get_advanced_search_base_filter(
@@ -199,7 +199,7 @@ def get_advanced_search_boolean_filter(search_terms):
                 **get_advanced_search_term(op, value),
                 op='or')
 
-    return and_all(and_q, or_q)
+    return and_all(and_q, or_q, op='or')
 
 
 def and_all(*args, op='and', negate=False):
@@ -232,19 +232,6 @@ def get_advanced_search_term(match, value):
         return {'keywords__iregex': value}
     else:
         return {'keywords__contains': value}
-
-
-def get_arr(request, key):
-    val = request.GET.get(key, ())
-    if isinstance(val, str):
-        return (val,)
-
-    return val
-
-
-def get_single(request, key):
-    arr = get_arr(request, key)
-    return arr[0] if len(arr) > 0 else None
 
 
 def add_decade(prevdate):

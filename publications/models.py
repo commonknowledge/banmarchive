@@ -288,15 +288,6 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
 
         return ' '.join(res)
 
-    def save(self, *args, **kwargs):
-        res = super().save(*args, **kwargs)
-
-        if self.tags.count() == 0:
-            print(keywords(self.text_content))
-            print(keywords(self.title))
-
-        return res
-
 
 post_save.connect(AdvancedSearchIndex._handle_post_save, sender=Article)
 post_save.connect(AdvancedSearchIndex._handle_post_save,
