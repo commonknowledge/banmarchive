@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static wagtailcore_tags search_tags %}
+{% load static wagtailcore_tags search_tags util_tags %}
 
 {% block title %}Search{% endblock %}
 
@@ -50,13 +50,9 @@
                 {% endfor %}
             </div>
     
-            {% if search_results.has_previous %}
-                <a href="{% url 'search' %}?query={{ search_query|urlencode }}&amp;page={{ search_results.previous_page_number }}">Previous</a>
-            {% endif %}
-    
-            {% if search_results.has_next %}
-                <a href="{% url 'search' %}?query={{ search_query|urlencode }}&amp;page={{ search_results.next_page_number }}">Next</a>
-            {% endif %}
+            <nav aria-label="Pages" class="d-flex flex-column align-items-center">
+                {% bs_pagination paginator %}
+            </nav>
         {% elif search_query %}
             <h2 class="mb-3"><span class="text-secondary">No results for</span> {{search_query}}</h2>
 

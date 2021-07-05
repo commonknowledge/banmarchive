@@ -16,13 +16,13 @@ from publications import models
 
 
 def search(request):
-    page = request.GET.get('page', 1)
     mode = request.GET.get('mode', 'simple')
 
     if mode == 'advanced':
         return advanced_search(request)
 
     search_query = request.GET.get('query')
+    page = get_page(request)
 
     # Search
     if search_query:
@@ -44,23 +44,18 @@ def search(request):
 
     # Pagination
     paginator = Paginator(search_results, 10)
-    try:
-        search_results_page = paginator.page(page)
-    except PageNotAnInteger:
-        search_results_page = paginator.page(1)
-    except EmptyPage:
-        search_results_page = paginator.page(paginator.num_pages)
 
     search_results = tuple(
         {'page': page, 'search_highlight': get_search_highlight(
             page.specific, highlighter)}
-        for page in search_results_page
+        for page in paginator.page(page)
     )
 
     return TemplateResponse(request, 'search/search.html', {
         'search_query': search_query,
         'search_results': search_results,
         'total_count': paginator.count,
+        'paginator': paginator,
         'decades': get_decades,
         'publications': get_publications
     })
@@ -121,6 +116,7 @@ def advanced_search(request):
         publication = request.GET.get('publication')
         decade = request.GET.get('decade')
         author = request.GET.get('author')
+        page = get_page(request)
 
         filter = and_all(
             get_advanced_search_base_filter(
@@ -136,7 +132,7 @@ def advanced_search(request):
         paginator = Paginator(objects, per_page=10)
         search_results = (
             page.page_id
-            for page in paginator.page(1).object_list
+            for page in paginator.page(page).object_list
         )
 
         return TemplateResponse(request, 'search/advanced.html', {
@@ -153,6 +149,14 @@ def advanced_search(request):
 
     else:
         return TemplateResponse(request, 'search/advanced.html', base_response)
+
+
+def get_page(request):
+    page = request.GET.get('page', 1)
+    try:
+        return max(int(page), 1)
+    except ValueError:
+        return 1
 
 
 def get_advanced_search_base_filter(publication, decade, author):
