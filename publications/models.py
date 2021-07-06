@@ -91,11 +91,31 @@ class Publication(AbstractArchiveItem):
         earliest = cmp_if_not_none(min_simple, min_multi, min)
         latest = cmp_if_not_none(max_simple, max_multi, max)
 
+        if not earliest or not latest:
+            return None
+
         return range(earliest.year, latest.year + 1)
 
-    @property
+    @django_cached('publications.models.Publication.num_issues', lambda self: self.id)
+    def num_issues(self):
+        return self.issues.count()
+
+    def year_range_str(self):
+        years = self.years()
+
+        if years is None:
+            return ''
+
+        return f'{years.start}–{years.stop - 1}'
+
+    @django_cached('publications.models.Publication.random_issue', lambda self: self.id)
     def random_issue(self):
-        return random_model(self.issues)
+        for _ in range(5):
+            candidate = random_model(self.issues)
+            if candidate.specific.get_thumbnail_document() is not None:
+                return candidate
+
+        return candidate
 
     @property
     def search_meta_info(self):

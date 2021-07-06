@@ -1,5 +1,5 @@
 :root {
-  --bs-font-sans-serif: 'Open Sans', 'sans-serif';
+  --bs-font-sans-serif: "Open Sans", "sans-serif";
 }
 
 body {
@@ -12,14 +12,14 @@ body {
 }
 
 @mixin heading-large {
-  font-family: 'Bitter', sans-serif;
+  font-family: "Bitter", sans-serif;
   font-weight: 300;
   font-size: 48px;
   line-height: 125%;
 }
 
 @mixin heading-mid-large {
-  font-family: 'Bitter', sans-serif;
+  font-family: "Bitter", sans-serif;
   font-weight: 300;
   font-size: 32px;
   line-height: 125%;
@@ -71,7 +71,6 @@ h4 {
   padding: 0;
 
   a {
-    @include heading-medium;
     padding: $list-group-item-padding-x $list-group-item-padding-y;
     display: inline-block;
     width: 100%;
