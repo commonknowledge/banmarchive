@@ -7,31 +7,22 @@
     <header class="container py-4">
         <h1 class="mb-2">Search</h1>
 
-        <form action="{% url 'search' %}" autocomplete="off" method="get" class="input-group">
-            <input id="search" type="text"{% if search_query %} value="{{search_query}}"{% endif %} aria-label="Search query" aria-describedby="search-btn" name="query" class="form-control">
-            <button class="btn btn-primary px-5" type="submit" id="search-btn">Search</button>
-        </form>
-
-        <div class="row mt-3">
-            <div class="col-auto">
-            Example searches:
-            <a class="d-inline-block ms-1" href="/search?query=feminism">feminism</a>
-            <a class="d-inline-block ms-1" href="/search?query=black+power">black power</a>
-            <a class="d-inline-block ms-1" href="/search?query=stuart+hall">stuart hall</a>
-            </div>
-
-            <div class="col text-end">
-                <a href="/search/?mode=advanced">
-                    Advanced search
-                </a>
-            </div>
-        </div>
+        {% search_block %}
     </header>
 
     <main class="container py-5">
-
         {% if search_results %}
-            <h2 class="mb-3"><span class="text-secondary">{{total_count}} results for</span> {{search_query}}</h2>
+            <h2 class="mb-3">
+                <span class="text-secondary">{{total_count}} results for</span> {{search_query}}
+            </h2>
+
+
+            {% if scope and not scope.specific.is_publication %}
+            <div class="microcopy">
+                Showing results in
+                <a href="{{ scope.url }}">{{ scope.specific.search_meta_info }}</a><br>
+            </div>
+            {% endif %}
 
             <div>
                 {% for result in search_results %}
@@ -50,9 +41,11 @@
                 {% endfor %}
             </div>
     
+            {% if paginator.num_pages > 1 %}
             <nav aria-label="Pages" class="d-flex flex-column align-items-center">
                 {% bs_pagination paginator %}
             </nav>
+            {% endif %}
         {% elif search_query %}
             <h2 class="mb-3"><span class="text-secondary">No results for</span> {{search_query}}</h2>
 

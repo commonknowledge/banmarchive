@@ -1,4 +1,5 @@
 from datetime import date
+from helpers.content import get_page, safe_to_int
 from django.core import paginator
 
 from django.db.models.query_utils import Q
@@ -22,6 +23,11 @@ def search(request):
         return advanced_search(request)
 
     search_query = request.GET.get('query')
+    scope_id = safe_to_int(request.GET.get('scope'))
+    scope = Page.objects.filter(
+        pk=scope_id
+    ).first() if scope_id is not None else None
+
     page = get_page(request)
 
     # Search
@@ -34,7 +40,12 @@ def search(request):
             start_sel='<banm:hl>',
             stop_sel="</banm:hl>"
         )
-        search_results = models.Article.objects.live().search(search_query)
+        qs = models.Article.objects.live()
+
+        if scope is not None:
+            qs = qs.descendant_of(scope)
+
+        search_results = qs.search(search_query)
         query = Query.get(search_query)
 
         # Record hit
@@ -43,7 +54,7 @@ def search(request):
         search_results = Page.objects.none()
 
     # Pagination
-    paginator = Paginator(search_results, 10)
+    paginator = Paginator(search_results, 25)
 
     search_results = tuple(
         {'page': page, 'search_highlight': get_search_highlight(
@@ -52,6 +63,8 @@ def search(request):
     )
 
     return TemplateResponse(request, 'search/search.html', {
+        'scope': scope,
+        'publications': models.Publication.objects.order_by('title'),
         'search_query': search_query,
         'search_results': search_results,
         'total_count': paginator.count,
@@ -129,7 +142,7 @@ def advanced_search(request):
         else:
             objects = models.AdvancedSearchIndex.objects.all()
 
-        paginator = Paginator(objects, per_page=10)
+        paginator = Paginator(objects, per_page=25)
         search_results = (
             page.page_id
             for page in paginator.page(page).object_list
@@ -151,23 +164,16 @@ def advanced_search(request):
         return TemplateResponse(request, 'search/advanced.html', base_response)
 
 
-def get_page(request):
-    page = request.GET.get('page', 1)
-    try:
-        return max(int(page), 1)
-    except ValueError:
-        return 1
-
-
 def get_advanced_search_base_filter(publication, decade, author):
     q = None
 
     if publication:
         q = add_to_query(q, keywords__contains=[
-                         ['publication', int(publication)]])
+                         ['publication', safe_to_int(publication)]])
 
     if decade:
-        q = add_to_query(q, keywords__contains=[['decade', int(decade)]])
+        q = add_to_query(q, keywords__contains=[
+                         ['decade', safe_to_int(decade)]])
 
     if author:
         q = add_to_query(q, keywords__contains=[['author', author]])

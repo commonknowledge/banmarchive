@@ -1,6 +1,12 @@
 .pdf-document {
+  position: relative;
 }
 
 .pdf-container {
   position: relative;
+}
+
+.pdf-page {
+  position: relative;
+  left: 18px;
 }

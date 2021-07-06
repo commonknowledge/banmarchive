@@ -1,0 +1,41 @@
+<form action="{% url 'search' %}" autocomplete="off" method="get" class="row">
+  <div class="col">
+    <label class="form-label" for="search">Search{% if defined_scope %} {{defined_scope}}{% endif %}</label>
+    <input {% if search_query %} value="{{search_query}}"{% endif %} id="search" type="text" name="query" class="form-control">
+  </div>
+
+  {% if publications %}
+  <div class="col-6">
+    <label class="form-label" for="search-filter">Filter by</label>
+    <select name="scope" class="form-control" id="search-filter">
+      <option value="">Whole Archive</option>
+      {% for p in publications %}
+      <option{% if p.id == scope %} selected{% endif %} value="{{p.id}}">{{p.title}}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% else %}
+    {% if scope %}
+    <input type="hidden" name="scope" value="{{scope}}">
+    {% endif %}
+  {% endif %}
+  
+  <div class="col-2 d-flex flex-row align-items-end">
+    <button class="btn btn-primary flex-grow-1" type="submit" id="button-addon2">Search</button>
+  </div>
+</form>
+
+<div class="row mt-3">
+    <div class="col-auto">
+    Example searches:
+    <a class="d-inline-block ms-1" href="/search/?query=feminism">feminism</a>
+    <a class="d-inline-block ms-1" href="/search/?query=black+power">black power</a>
+    <a class="d-inline-block ms-1" href="/search/?query=stuart+hall">stuart hall</a>
+    </div>
+
+    <div class="col text-end">
+        <a href="/search/?mode=advanced">
+            Advanced search
+        </a>
+    </div>
+</div>

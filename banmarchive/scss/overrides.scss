@@ -18,6 +18,13 @@ body {
   line-height: 125%;
 }
 
+@mixin heading-mid-large {
+  font-family: 'Bitter', sans-serif;
+  font-weight: 300;
+  font-size: 32px;
+  line-height: 125%;
+}
+
 @mixin heading-medium {
   font-weight: bold;
   font-size: 24px;
@@ -39,6 +46,10 @@ body {
 .heading-large,
 h1 {
   @include heading-large;
+}
+
+.heading-mid-large {
+  @include heading-mid-large;
 }
 
 .heading-medium,

@@ -20,39 +20,7 @@
 
   <div class="bg-white">
     <section class="container py-5">
-      <form action="{% url 'search' %}" autocomplete="off" method="get" class="row">
-        <div class="col-6">
-          <label class="form-label" for="search">Search</label>
-          <input id="search" type="text" name="query" class="form-control">
-        </div>
-
-        <div class="col-4">
-          <label class="form-label" for="search-filter">Filter by</label>
-          <select class="form-control" id="search-filter">
-
-          </select>
-        </div>
-        
-        <div class="col d-flex flex-row align-items-end">
-          <button class="btn btn-primary flex-grow-1" type="submit" id="button-addon2">Search</button>
-        </div>
-      </form>
-
-      <div class="row mt-3">
-        <div class="col-6">
-          Example searches:
-          <a class="d-inline-block ms-1" href="/search?query=feminism">feminism</a>
-          <a class="d-inline-block ms-1" href="/search?query=black+power">black power</a>
-          <a class="d-inline-block ms-1" href="/search?query=stuart+hall">stuart hall</a>
-        </div>
-
-        <div class="col text-end">
-            <a href="/search/?mode=advanced">
-                Advanced search
-            </a>
-        </div>
-      </div>
-
+      {% search_block %}
     </section>
   </div>
 

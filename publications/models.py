@@ -1,3 +1,5 @@
+from helpers.cache import django_cached
+from django.core.paginator import Paginator
 from django.db import models
 from django.db.models.fields import related
 from django.db.models.signals import post_save, pre_save
@@ -12,7 +14,7 @@ from wagtail.documents.edit_handlers import DocumentChooserPanel
 from wagtail.images.edit_handlers import ImageChooserPanel
 from taggit.models import TaggedItemBase
 
-from helpers.content import get_children_of_type, random_model
+from helpers.content import get_children_of_type, get_page, random_model
 from helpers.thumbnail_generator import PdfThumbnailMixin
 from search.models import AdvancedSearchIndex, IndexedPdfMixin
 
@@ -50,10 +52,46 @@ class Publication(AbstractArchiveItem):
     introduction_article = models.OneToOneField(
         'home.ArticlePage', blank=True, null=True, related_name='introduction_for_publication', on_delete=models.SET_NULL)
 
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        paginator = Paginator(self.issues, 20)
+        page = get_page(request)
+        context['issues'] = paginator.get_page(page)
+        context['paginator'] = paginator
+        context['years'] = self.years()
+
+        return context
+
     # Data
+    is_publication = True
+
     @property
     def issues(self):
         return get_children_of_type(self, SimpleIssue, MultiArticleIssue)
+
+    @django_cached('publications.models.Publication.years', lambda self: self.id)
+    def years(self):
+        def cmp_if_not_none(a, b, cmp):
+            if a is None:
+                return b
+            if b is None:
+                return a
+
+            return cmp(a, b)
+
+        min_simple = get_children_of_type(self, SimpleIssue).aggregate(
+            models.Min('publication_date'))['publication_date__min']
+        max_simple = get_children_of_type(self, SimpleIssue).aggregate(
+            models.Max('publication_date'))['publication_date__max']
+        min_multi = get_children_of_type(self, MultiArticleIssue).aggregate(
+            models.Min('publication_date'))['publication_date__min']
+        max_multi = get_children_of_type(self, MultiArticleIssue).aggregate(
+            models.Max('publication_date'))['publication_date__max']
+
+        earliest = cmp_if_not_none(min_simple, min_multi, min)
+        latest = cmp_if_not_none(max_simple, max_multi, max)
+
+        return range(earliest.year, latest.year + 1)
 
     @property
     def random_issue(self):
@@ -61,7 +99,7 @@ class Publication(AbstractArchiveItem):
 
     @property
     def search_meta_info(self):
-        return 'Publication'
+        return self.title
 
 
 class AbstractIssue(PdfThumbnailMixin, AbstractArchiveItem):
@@ -93,6 +131,18 @@ class AbstractIssue(PdfThumbnailMixin, AbstractArchiveItem):
             'Publication details'
         )
     ]
+
+    @property
+    def issue_page(self):
+        return self
+
+    @property
+    def publication(self):
+        return self.parent
+
+    @property
+    def search_meta_info(self):
+        return f'{self.publication.title} {self.issue_page.title}'
 
     # Page fields
     tags = ClusterTaggableManager(through=PageTag, blank=True)
@@ -144,10 +194,6 @@ class SimpleIssue(IndexedPdfMixin, AbstractIssue):
     @property
     def pdf(self):
         return self.issue_content
-
-    @property
-    def publication(self):
-        return self.parent
 
     @property
     def search_meta_info(self):
@@ -254,8 +300,12 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
         return self.parent
 
     @property
+    def issue_page(self):
+        return self.issue
+
+    @property
     def publication(self) -> Publication:
-        return self.parent.parent
+        return self.issue_page.parent
 
     @property
     def articles(self):

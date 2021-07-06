@@ -8,3 +8,17 @@
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
+.flex-height-0 {
+  flex-basis: 0;
+  min-height: 0;
+}
+
+.flex-width-0 {
+  flex-basis: 0;
+  min-width: 0;
+}
+
+.min-w-readable {
+  min-width: 20em;
+}

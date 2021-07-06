@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load wagtailcore_tags wagtailimages_tags %}
+{% load wagtailcore_tags wagtailimages_tags util_tags search_tags %}
 
 {% block content %}
 <header class="container pb-5">
@@ -29,9 +29,16 @@
   {% endif %}
 </header>
 
-<main class="container">
+
+<div class="bg-white">
+  <section class="container py-5">
+    {% search_block self %}
+  </section>
+</div>
+
+<main class="container py-5">
   <div class="row">
-    {% for issue in self.issues %}
+    {% for issue in issues %}
       <div class="col-3 p-2">
         <a href="{{ issue.url }}" class="card">
           {% image issue.specific.cover_image height-364 class="card-img-top publication-image" %}
@@ -43,5 +50,11 @@
       </div>
     {% endfor %}
   </div>
+
+  {% if paginator.num_pages > 1 %}
+  <nav aria-label="Pages" class="d-flex flex-column align-items-center">
+      {% bs_pagination paginator %}
+  </nav>
+  {% endif %}
 </main>
 {% endblock %}

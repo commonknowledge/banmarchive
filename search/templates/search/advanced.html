@@ -143,9 +143,11 @@
                 {% endfor %}
             </div>
             
+            {% if paginator.num_pages > 1 %}
             <nav aria-label="Pages" class="d-flex flex-column align-items-center">
-              {% bs_pagination paginator %}
+                {% bs_pagination paginator %}
             </nav>
+            {% endif %}
         {% else %}
             <h2 class="mb-3"><span class="text-secondary">No results</span></h2>
 
