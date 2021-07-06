@@ -1,3 +1,5 @@
+from wagtail.core.models import Site
+from home.models import HomePage
 from urllib import parse
 
 from django import template
@@ -14,6 +16,19 @@ register = template.Library()
 @register.inclusion_tag('helpers/bs_link.html', takes_context=True)
 def bs_link(context, **kwargs):
     kwargs['request'] = context.get('request')
+    return kwargs
+
+
+@register.inclusion_tag('helpers/menubar.html', takes_context=True)
+def menubar(context, **kwargs):
+    site = Site.find_for_request(context.get('request'))
+    if site is None:
+        return
+
+    root = site.root_page
+    kwargs['pages'] = root.get_children().in_menu()
+    kwargs['request'] = context.get('request')
+
     return kwargs
 
 

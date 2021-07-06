@@ -196,12 +196,6 @@ WAGTAILSEARCH_BACKENDS = {
     }
 }
 
-WAGTAILTRANSFER_SOURCES = {
-    'staging': {
-        'BASE_URL': 'https://banmarchive.commonknowledge.dev/wagtail-transfer/',
-    }
-}
-
 # Rest settings
 
 REST_FRAMEWORK = {

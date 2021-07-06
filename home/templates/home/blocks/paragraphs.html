@@ -5,8 +5,14 @@
     {{self.content}}
   </div>
   <div class="col-3">
-    {% for img in self.side_images %}
-      {% image img width-197 class="mb-5" %}
+    {% for img in side_images_with_links %}
+      {% if img.issue %}
+        <a href="{{img.issue.url}}">
+          {% image img.img width-197 class="mb-5" alt=img.issue.search_meta_info %}
+        </a>
+      {% else %}
+        {% image img.img width-197 class="mb-5" %}
+      {% endif %}
     {% endfor %}
   </div>
 </div>
