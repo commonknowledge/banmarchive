@@ -203,7 +203,8 @@ class KeywordExtractor(models.Model):
         self.save()
 
     def fit_keywords(self, qs):
-        from publications.models import PageTag
+        if not self.is_trained:
+            return
 
         all_articles = qs.iterator()
         cv = pickle.loads(self.cv)

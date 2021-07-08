@@ -28,5 +28,3 @@ class Command(BaseCommand):
                 if not obj.has_indexed_pdf_content() or all:
                     logging.info('Reindexing %s', obj)
                     obj.reindex_pdf_content()
-
-        KeywordExtractor.article_extractor().fit_keywords(Article.objects.all())
