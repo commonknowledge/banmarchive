@@ -137,6 +137,11 @@ class KeywordExtractor(models.Model):
     cv = models.BinaryField(null=True, blank=True)
     stopwords = models.JSONField(default=list)
     keywords = models.JSONField(default=list)
+    kw_count_article = models.IntegerField(default=100)
+    kw_count_title = models.IntegerField(default=5)
+    max_features = models.IntegerField(default=10000)
+    ngram_max = models.IntegerField(default=3)
+    max_df = models.FloatField(default=0.95)
 
     def __str__(self):
         return self.slug
@@ -186,10 +191,10 @@ class KeywordExtractor(models.Model):
         stopwords = self.get_stopwords()
         all_articles = qs.iterator()
         tfidf_transformer = TfidfTransformer(smooth_idf=True, use_idf=True)
-        cv = CountVectorizer(max_df=0.95,         # ignore words that appear in 95% of documents
-                             max_features=10000,  # the size of the vocabulary
-                             # vocabulary contains single words, bigrams, trigrams
-                             ngram_range=(1, 3)
+        cv = CountVectorizer(max_df=self.max_df,         # ignore words that appear in x% of documents
+                             max_features=self.max_features,  # the size of the vocabulary
+                             # vocabulary contains single words, <=> ngrams
+                             ngram_range=(1, self.ngram_max)
                              )
 
         docs = [self.pre_process(d.text_content, stopwords)
@@ -214,7 +219,7 @@ class KeywordExtractor(models.Model):
             tuples = zip(coo_matrix.col, coo_matrix.data)
             return sorted(tuples, key=lambda x: (x[1], x[0]), reverse=True)
 
-        def extract_topn_from_vector(feature_names, sorted_items, topn=10):
+        def extract_topn_from_vector(feature_names, sorted_items, topn):
             """get the feature names and tf-idf score of top n items"""
 
             # use only topn items from vector
@@ -255,8 +260,8 @@ class KeywordExtractor(models.Model):
 
         def get_article_keywords(article):
             return set([
-                *get_keywords(article.text_content, 75),
-                *get_keywords(article.title, 5)
+                *get_keywords(article.text_content, self.kw_count_article),
+                *get_keywords(article.title, self.kw_count_title)
             ])
 
         all_keywords = set(self.keywords)
