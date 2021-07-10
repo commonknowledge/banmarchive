@@ -9,7 +9,8 @@ module.exports = {
   mode: isProduction ? "production" : "development",
   entry: {
     main: ["./banmarchive/scss/index.scss"],
-    pdf: ["./publications/js/pdf.js", "./publications/scss/pdf.scss"]
+    pdf: ["./publications/js/pdf.js", "./publications/scss/pdf.scss"],
+    upload: ["./publications/js/upload.js"],
   },
   devtool: isProduction ? "eval-source-map" : false,
 
@@ -25,7 +26,7 @@ module.exports = {
           {
             loader: "babel-loader",
           },
-        ]
+        ],
       },
       {
         test: /\.(scss)$/,
@@ -85,8 +86,9 @@ module.exports = {
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-      "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
-    }  
+      "Access-Control-Allow-Headers":
+        "X-Requested-With, content-type, Authorization",
+    },
   },
 
   plugins: [

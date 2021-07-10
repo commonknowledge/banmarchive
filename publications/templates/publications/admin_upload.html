@@ -1,0 +1,46 @@
+{% extends "wagtailadmin/base.html" %}
+{% load wagtailimages_tags wagtailadmin_tags i18n l10n webpack_bundle %}
+{% block titletag %}{% trans "Bulk article upload" %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+
+    {% include "wagtailadmin/pages/_editor_css.html" %}
+    <link rel="stylesheet" href="{% versioned_static 'wagtail_transfer/css/transfer-styles.css' %}">
+{% endblock %}
+
+{% block content %}
+    <style>
+      ol.info li,
+      ol.info,
+      ul.info li,
+      ul.info {
+        list-style-type: iunsetnitial !important;
+      }
+
+      ol.info,
+      ul.info {
+        padding-left: 1em !important;
+      }
+
+      .info li {
+        padding-bottom: 0.5em !important;
+      }
+    </style>
+    {% trans "Bulk article upload" as title_str %}
+    {% include "wagtailadmin/shared/header.html" with title=title_str icon="doc-empty-inverse" %}
+
+    <div class="nice-padding">
+      {% include "wagtailadmin/shared/non_field_errors.html" %}
+
+      <form action="{% url 'wagtaildocs:add' %}" method="POST" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        {{ examples|json_script:"example_rows" }}
+        {{ archive_root|json_script:"archive_root" }}
+
+        <div id="upload-widget"></div>
+        {% webpack_bundle 'upload' %}
+    </form>
+  </div>
+{% endblock %}

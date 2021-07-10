@@ -251,13 +251,6 @@ class MultiArticleIssue(AbstractIssue):
     def pdf(self):
         return self.issue_cover
 
-    def save(self, *args, generate_thumbnail, **kwargs):
-        for article in self.articles:
-            if article.publication_date != self.publication_date:
-                article.save()
-
-        return super().save(*args, generate_thumbnail=generate_thumbnail, **kwargs)
-
 
 class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
     # Config

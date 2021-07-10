@@ -2,6 +2,7 @@ import json
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
+from django.utils.text import slugify
 from rest_framework import viewsets, permissions, exceptions, response, parsers
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -42,6 +43,21 @@ class CreateOrUpdateMixin:
                     defaults=defaults, **identifiers)
 
             return model
+
+        request_data = request.data
+        if 'slug' in self.identitfier_keys and 'slug' not in request_data:
+            if 'title' in request_data:
+                qs = self.queryset.filter(title=request_data['title'])
+
+                if isinstance(request_data.get('parent'), int):
+                    qs = qs.child_of(Page.objects.get(
+                        pk=request_data['parent']))
+
+                hit = qs.first()
+                if hit is None:
+                    request_data['slug'] = slugify(request_data['title'])
+                else:
+                    request_data['slug'] = hit.slug
 
         request_serializer = self.get_serializer(data=request.data)
         if not request_serializer.is_valid():
