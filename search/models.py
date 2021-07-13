@@ -1,6 +1,7 @@
 from itertools import zip_longest
 import pickle
 import re
+from datetime import datetime, timezone, tzinfo
 from functools import lru_cache
 
 from nltk.stem.wordnet import WordNetLemmatizer
@@ -142,6 +143,8 @@ class KeywordExtractor(models.Model):
     max_features = models.IntegerField(default=10000)
     ngram_max = models.IntegerField(default=3)
     max_df = models.FloatField(default=0.95)
+    last_trained = models.DateTimeField(null=True, blank=True)
+    last_generated = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.slug
@@ -205,6 +208,7 @@ class KeywordExtractor(models.Model):
 
         self.tfidf_transformer = pickle.dumps(tfidf_transformer)
         self.cv = pickle.dumps(cv)
+        self.last_trained = datetime.now(tz=timezone.utc)
         self.save()
 
     def fit_keywords(self, qs):
@@ -276,6 +280,7 @@ class KeywordExtractor(models.Model):
                     AdvancedSearchIndex.index(article)
 
         self.keywords = sorted(all_keywords)
+        self.last_generated = datetime.now(tz=timezone.utc)
         self.save()
 
 
