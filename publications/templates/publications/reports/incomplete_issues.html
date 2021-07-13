@@ -1,0 +1,9 @@
+{% extends 'wagtailadmin/reports/base_page_report.html' %}
+
+{% block listing %}
+    {% include 'publications/reports/include/incomplete_issue.html' %}
+{% endblock %}
+
+{% block no_results %}
+    <p>No issues are missing content. Good job!</p>
+{% endblock %}

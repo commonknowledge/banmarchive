@@ -1,0 +1,31 @@
+{% extends 'wagtailadmin/reports/listing/_list_page_report.html' %}
+
+{% block extra_columns %}
+  <th>Publication</th>
+  <th>Issue</th>
+  <th>Has author</th>
+  <th>PDF File</th>
+{% endblock %}
+
+{% block extra_page_data %}
+  <td valign="top">
+    {{page.publication}}
+  </td>
+  <td valign="top">
+    {{page.issue}}
+  </td>
+  <td valign="top">
+      {% if page.author_name %}
+      <span style="color: var(--color-primary, green)">{{page.author_name}}</span>
+      {% else %}
+      <span style="color: var(--color-error, red)">⨯</span>
+      {% endif %}
+  </td>
+  <td valign="top">
+    {% if page.article_content.file %}
+    <span style="color: var(--color-primary, green)">✔️</span>
+    {% else %}
+    <span style="color: var(--color-error, red)">⨯</span>
+    {% endif %}
+  </td>
+{% endblock %}

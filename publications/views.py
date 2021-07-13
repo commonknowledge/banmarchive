@@ -1,9 +1,36 @@
+from django.db.models.query_utils import Q
 from wagtail.core.models import Site
+from wagtail.admin.views.reports import PageReportView
 from helpers.cache import django_cached
 from django.views.generic import TemplateView
 from django.template.defaultfilters import slugify
 
 from publications import models
+
+
+class ArticlesMissingContentView(PageReportView):
+    header_icon = 'doc-full-inverse'
+    title = "Incomplete articles"
+    template_name = 'publications/reports/incomplete_articles.html'
+
+    def get_queryset(self):
+        return models.Article.objects.filter(
+            Q(author_name__isnull=True)
+            | Q(article_content__file__isnull=True)
+        )
+
+
+class IssuesMissingContentView(PageReportView):
+    header_icon = 'doc-full-inverse'
+    title = "Incomplete issues"
+    template_name = 'publications/reports/incomplete_issues.html'
+
+    def get_queryset(self):
+        return models.MultiArticleIssue.objects.filter(
+            Q(publication_date__isnull=True)
+            | Q(issue_cover__file__isnull=True)
+            | Q(Q(issue__isnull=True) & Q(Q(number__isnull=True) | Q(volume__isnull=True)))
+        )
 
 
 class ImportView(TemplateView):
@@ -27,7 +54,7 @@ class ImportView(TemplateView):
 
         return 1
 
-    # @django_cached('publications.views.ImportView.get_example_issue_import_rows')
+    @django_cached('publications.views.ImportView.get_example_issue_import_rows')
     def get_example_issue_import_rows(self, issue):
         articles = [
             {

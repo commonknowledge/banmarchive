@@ -14,6 +14,26 @@ def register_import_menu():
 @hooks.register('register_admin_urls')
 def urlconf_bulk_upload():
     return [
-        path('upload/',
-             views.ImportView.as_view(), name='bulk_upload_admin'),
+        path('upload/', views.ArticlesMissingContentView.as_view(),
+             name='bulk_upload_admin'),
+        path('reports/incomplete-articles/',
+             views.ArticlesMissingContentView.as_view(), name='incomplete_articles'),
+        path('reports/incomplete-issues/',
+             views.IssuesMissingContentView.as_view(), name='incomplete_issues'),
     ]
+
+
+@hooks.register('register_reports_menu_item')
+def register_unpublished_changes_report_menu_item():
+    return MenuItem(
+        "Incomplete Articles",
+        reverse('incomplete_articles'),
+        classnames='icon icon-' + views.ArticlesMissingContentView.header_icon, order=700)
+
+
+@hooks.register('register_reports_menu_item')
+def register_unpublished_changes_report_menu_item():
+    return MenuItem(
+        "Incomplete Issues",
+        reverse('incomplete_issues'),
+        classnames='icon icon-' + views.IssuesMissingContentView.header_icon, order=701)

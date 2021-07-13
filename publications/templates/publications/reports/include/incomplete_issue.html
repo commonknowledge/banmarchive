@@ -1,0 +1,38 @@
+{% extends 'wagtailadmin/reports/listing/_list_page_report.html' %}
+{% load wagtailimages_tags %}
+
+{% block extra_columns %}
+  <th>Publication</th>
+  <th>Publication date</th>
+  <th>Cover image</th>
+  <th>Issue / Volume</th>
+{% endblock %}
+
+{% block extra_page_data %}
+  <td valign="top">
+    {{page.publication}}
+  </td>
+  <td valign="top">
+      {% if page.publication_date %}
+      <span style="color: var(--color-primary, green)">{{page.publication_date}}</span>
+      {% else %}
+      <span style="color: var(--color-error, red)">⨯</span>
+      {% endif %}
+  </td>
+  <td valign="top">
+      {% if page.issue_cover %}
+      <span style="color: var(--color-primary, green)">✔️</span>
+      {% else %}
+      <span style="color: var(--color-error, red)">⨯</span>
+      {% endif %}
+  </td>
+  <td valign="top">
+    {% if page.issue %}
+    <span style="color: var(--color-primary, green)">✔️</span>
+    {% elif page.volume and page.number %}
+    <span style="color: var(--color-primary, green)">✔️</span>
+    {% else %}
+    <span style="color: var(--color-error, red)">⨯</span>
+    {% endif %}
+  </td>
+{% endblock %}
