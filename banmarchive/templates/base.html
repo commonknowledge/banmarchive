@@ -34,15 +34,12 @@
 
         {% block body %}
         {% block header %}
-        <nav class="navbar navbar-expand-lg py-4 navbar-light">
+        <nav class="navbar navbar-expand py-4 navbar-light">
             <div class="container align-items-end">
                 <a class="navbar-brand" href="/">
-                    <img class="logo" src={% static 'img/logo.png' %} />
+                    <img class="logo d-md-none" src={% static 'img/logo-small.png' %} />
+                    <img class="logo d-none d-md-inline-block" src={% static 'img/logo.png' %} />
                 </a>
-
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <span class="flex-grow-1"></span>
@@ -57,17 +54,17 @@
         {% endblock %}
 
         {% block spacer %}
-        <span class="flex-grow-1"></span>
+        <span class="flex-grow-1 pb-5 pt-5"></span>
         {% endblock %}
         {% endblock %}
 
         <div class="bg-panel">
-            <footer class="container py-5 px-3 fs-6 text">
+            <footer class="container py-4 py-md-5 fs-6 text">
                 <div class="row">
-                    <div class="col-8 d-flex flex-row">
-                        <img class="logo-small" src={% static 'img/logo-small.png' %} />
+                    <div class="col-8 d-flex flex-column flex-md-row align-items-start">
+                        <img class="logo-small mb-3 me-3" src={% static 'img/logo-small.png' %} />
 
-                        <div class="ms-3">
+                        <div class="mb-3 me-3">
                             <p>
                                 © Barry Amiel and Norman Melburn Trust
                                 <script>document.write(new Date().getFullYear().toString())</script>
@@ -82,10 +79,10 @@
                         </div>
                     </div>
 
-                    <div class="col d-flex flex-column align-items-end justify-content-end">
+                    <div class="col d-flex flex-column flex-md-row align-items-md-end justify-content-end">
                         <div class="mb-3">
-                            <a class="ms-3" href="#">Accessibility</a>
-                            <a class="ms-3" href="#">Privacy policy</a>
+                            <a class="d-block d-md-inline-block me-3" href="#">Accessibility</a>
+                            <a class="d-block d-md-inline-block me-3" href="#">Privacy policy</a>
                         </div>
 
                         <div>

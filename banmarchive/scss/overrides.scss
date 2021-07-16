@@ -7,15 +7,24 @@ body {
     background: $primary-hover-light;
   }
 
-  font-size: 18px;
+  font-size: 16px;
+
+  @include media-breakpoint-up(md) {
+    font-size: 18px;
+  }
+
   color: $dark;
 }
 
 @mixin heading-large {
   font-family: "Bitter", sans-serif;
   font-weight: 300;
-  font-size: 48px;
   line-height: 125%;
+  font-size: 32px;
+
+  @include media-breakpoint-up(md) {
+    font-size: 48px;
+  }
 }
 
 @mixin heading-mid-large {
@@ -27,8 +36,13 @@ body {
 
 @mixin heading-medium {
   font-weight: bold;
-  font-size: 24px;
   line-height: 125%;
+
+  font-size: 18px;
+
+  @include media-breakpoint-up(md) {
+    font-size: 24px;
+  }
 }
 
 @mixin heading-small {
@@ -78,9 +92,19 @@ h4 {
     text-decoration: unset;
     color: inherit;
 
+    @include media-breakpoint-down(sm) {
+      padding: map-get($spacers, 3);
+    }
+
     &:hover {
       background-color: $primary-hover-light;
     }
+  }
+}
+
+.form-label {
+  @include media-breakpoint-down(sm) {
+    margin-bottom: map-get($spacers, 1);
   }
 }
 
@@ -92,5 +116,12 @@ h4 {
   &.active {
     color: $dark;
     border-bottom: 2px solid $primary;
+  }
+}
+
+.container {
+  @include media-breakpoint-down(sm) {
+    padding-left: map-get($spacers, 3);
+    padding-right: map-get($spacers, 3);
   }
 }

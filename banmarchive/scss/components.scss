@@ -1,6 +1,10 @@
 .logo {
   mix-blend-mode: multiply;
-  height: 80px;
+  height: 40px;
+
+  @include media-breakpoint-up(md) {
+    height: 80px;
+  }
 }
 
 .logo-mini {
@@ -10,7 +14,11 @@
 
 .logo-small {
   mix-blend-mode: multiply;
-  height: 103px;
+  height: 80px;
+
+  @include media-breakpoint-up(md) {
+    height: 103px;
+  }
 }
 
 .search-result-item:not(:last-of-type) {
@@ -24,14 +32,42 @@
 .publication-image {
   object-fit: contain;
   border: 1px solid $border-color;
-  padding: map-get($spacers, 4);
   background-color: white;
+
+  padding: map-get($spacers, 2);
+
+  @include media-breakpoint-up(md) {
+    padding: map-get($spacers, 4);
+  }
 }
 
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
   gap: map-get($spacers, 4);
+
+  > * {
+    display: none;
+  }
+  > *:nth-child(1) {
+    display: unset;
+  }
+  > *:nth-child(2) {
+    display: unset;
+  }
+
+  @include media-breakpoint-up(md) {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    > *:nth-child(3) {
+      display: unset;
+    }
+  }
+
+  @include media-breakpoint-up(lg) {
+    > *:nth-child(4) {
+      display: unset;
+    }
+  }
 }
 
 .card {
@@ -55,7 +91,6 @@ a.card {
     background-color: $primary-hover-light;
   }
 }
-
 
 .flex-basis-0 {
   flex-basis: 0;
