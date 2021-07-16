@@ -1,13 +1,13 @@
 // Colors
-$body-bg: #FBFBFB;
-$primary: #02808B;
+$body-bg: #fbfbfb;
+$primary: #02808b;
 $secondary: #727272;
-$panel: #ECF0F1;
+$panel: #ecf0f1;
 $primary-hover-light: #02808b1a;
-$brand1: #4C2023;
+$brand1: #4c2023;
 $custom-colors: (
-  'panel': $panel,
-  'brand1': $brand1
+  "panel": $panel,
+  "brand1": $brand1,
 );
 $dark: #333333;
 
@@ -35,12 +35,12 @@ $container-max-widths: (
   md: 755px,
   lg: 755px,
   xl: 1126px,
-  xxl: 1126px
+  xxl: 1126px,
 );
-
 
 // Merge with bootstrap
 @import "~bootstrap/scss/functions";
 @import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/utilities";
 
 $theme-colors: map-merge($theme-colors, $custom-colors);

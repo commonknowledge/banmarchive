@@ -107,3 +107,13 @@ a.card {
     @include heading-small;
   }
 }
+
+.scroll-snap-mobile-container {
+  @include media-breakpoint-down(sm) {
+    scroll-snap-type: y mandatory;
+
+    > * {
+      scroll-snap-align: start;
+    }
+  }
+}

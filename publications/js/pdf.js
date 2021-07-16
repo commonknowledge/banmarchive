@@ -120,130 +120,133 @@ const PDFViewer = ({ src }) => {
   );
 
   return (
-    <div className="d-flex flex-column h-100">
-      <div className="row w-100 p-1">
-        <div className="col-4"></div>
+    <>
+      <div className="d-flex flex-column h-100">
+        <div className="row w-100 gx-0 gx-md-1 p-1">
+          <div className="col-md-4"></div>
 
-        <div className="col-4 d-flex justify-content-center">
-          <div
-            className="btn-group"
-            role="group"
-            aria-label="Page zoom controls"
-          >
-            <button
-              {...zoomOffset(-1)}
-              className="btn btn-sm btn-outline-secondary"
-              aria-label="Zoom out"
+          <div className="col-6 col-md-4 d-flex justify-content-start justify-content-md-center">
+            <div
+              className="btn-group"
+              role="group"
+              aria-label="Page zoom controls"
             >
-              <ZoomOut />
-            </button>
-
-            <div className="btn-group" role="group">
               <button
-                id="zoom-menu"
-                type="button"
-                className="btn btn-sm btn-outline-secondary dropdown-toggle"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
+                {...zoomOffset(-1)}
+                className="btn btn-sm btn-outline-secondary"
+                aria-label="Zoom out"
               >
-                {zoom * 100}%
+                <ZoomOut />
               </button>
-              <ul className="dropdown-menu" aria-labelledby="zoom-menu">
-                {zoomLevels.map((zl) => (
-                  <li key={zl}>
-                    <a
-                      className={
-                        "dropdown-item" + (zoom === zl ? " active" : "")
-                      }
-                      aria-current={zoom === zl}
-                      onClick={() => setZoom(zl)}
-                      href="#"
-                    >
-                      {zl * 100}%
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
 
-            <button
-              {...zoomOffset(+1)}
-              className="btn btn-sm btn-outline-secondary"
-              aria-label="Zoom in"
+              <div className="btn-group" role="group">
+                <button
+                  id="zoom-menu"
+                  type="button"
+                  className="btn btn-sm btn-outline-secondary dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  {zoom * 100}%
+                </button>
+                <ul className="dropdown-menu" aria-labelledby="zoom-menu">
+                  {zoomLevels.map((zl) => (
+                    <li key={zl}>
+                      <a
+                        className={
+                          "dropdown-item" + (zoom === zl ? " active" : "")
+                        }
+                        aria-current={zoom === zl}
+                        onClick={() => setZoom(zl)}
+                        href="#"
+                      >
+                        {zl * 100}%
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <button
+                {...zoomOffset(+1)}
+                className="btn btn-sm btn-outline-secondary"
+                aria-label="Zoom in"
+              >
+                <ZoomIn />
+              </button>
+            </div>
+          </div>
+
+          <div className="col-6 col-md-4 d-flex justify-content-end">
+            <a
+              {...zoomOffset(-1)}
+              href={src}
+              download
+              aria-label="Download PDF"
+              className="btn btn-sm btn-outline-primary"
             >
-              <ZoomIn />
-            </button>
+              <Download width={18} height={18} className="me-md-1" />
+              <span class="d-none d-md-inline">Download PDF</span>
+            </a>
           </div>
         </div>
 
-        <div className="col-4 d-flex justify-content-end">
-          <a
-            {...zoomOffset(-1)}
-            href={src}
-            download
-            className="btn btn-sm btn-outline-primary"
-          >
-            <Download width={18} height={18} className="me-1" />
-            Download PDF
-          </a>
+        <div className="flex-grow-1 flex-height-0 position-relative">
+          <Autosizer>
+            {({ height, width }) => (
+              <Document
+                loading={<LoadingIndicator />}
+                file={src}
+                onLoadSuccess={handleLoader}
+              >
+                {state && (
+                  <InfiniteLoader
+                    key={zoom}
+                    isItemLoaded={isItemLoaded}
+                    itemCount={state.pdf.numPages}
+                    loadMoreItems={loadMore}
+                  >
+                    {({ onItemsRendered, ref }) => (
+                      <VariableSizeList
+                        initialScrollOffset={scrollOffsetRef.current * zoom}
+                        onItemsRendered={onItemsRendered}
+                        ref={ref}
+                        estimatedItemSize={projectHeight({
+                          viewportWidth: width * zoom,
+                          aspectRatio: state.estAspectRatio,
+                        })}
+                        itemSize={calcPageHeight(width * zoom)}
+                        itemCount={state.pdf.numPages}
+                        onScroll={handleScroll}
+                        width={width}
+                        height={height}
+                      >
+                        {({ index, style }) => {
+                          if (typeof state.cache[index] === "object") {
+                            return (
+                              <div style={style}>
+                                <Page
+                                  className="pdf-page"
+                                  scale={zoom}
+                                  width={width - 36}
+                                  pageNumber={index + 1}
+                                />
+                              </div>
+                            );
+                          } else {
+                            return <div style={style} />;
+                          }
+                        }}
+                      </VariableSizeList>
+                    )}
+                  </InfiniteLoader>
+                )}
+              </Document>
+            )}
+          </Autosizer>
         </div>
       </div>
-
-      <div className="flex-grow-1 flex-height-0 position-relative">
-        <Autosizer>
-          {({ height, width }) => (
-            <Document
-              loading={<LoadingIndicator />}
-              file={src}
-              onLoadSuccess={handleLoader}
-            >
-              {state && (
-                <InfiniteLoader
-                  key={zoom}
-                  isItemLoaded={isItemLoaded}
-                  itemCount={state.pdf.numPages}
-                  loadMoreItems={loadMore}
-                >
-                  {({ onItemsRendered, ref }) => (
-                    <VariableSizeList
-                      initialScrollOffset={scrollOffsetRef.current * zoom}
-                      onItemsRendered={onItemsRendered}
-                      ref={ref}
-                      estimatedItemSize={projectHeight({
-                        viewportWidth: width * zoom,
-                        aspectRatio: state.estAspectRatio,
-                      })}
-                      itemSize={calcPageHeight(width * zoom)}
-                      itemCount={state.pdf.numPages}
-                      onScroll={handleScroll}
-                      width={width}
-                      height={height}
-                    >
-                      {({ index, style }) => {
-                        if (typeof state.cache[index] === "object") {
-                          return (
-                            <div style={style}>
-                              <Page
-                                className="pdf-page"
-                                scale={zoom}
-                                width={width - 36}
-                                pageNumber={index + 1}
-                              />
-                            </div>
-                          );
-                        } else {
-                          return <div style={style} />;
-                        }
-                      }}
-                    </VariableSizeList>
-                  )}
-                </InfiniteLoader>
-              )}
-            </Document>
-          )}
-        </Autosizer>
-      </div>
-    </div>
+    </>
   );
 };
 

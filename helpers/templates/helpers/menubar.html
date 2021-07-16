@@ -1,15 +1,15 @@
 {% load util_tags %}
 
 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-    <li class="nav-item ms-4">
+    <li class="nav-item ms-3 ms-md-4">
         {% bs_link class="nav-link" href="/" label="Archive" %}
     </li>
-    <li class="nav-item ms-4">
+    <li class="nav-item ms-3 ms-md-4">
         {% bs_link class="nav-link" href="/search/" label="Search" %}
     </li>
 
     {% for page in pages %}
-      <li class="nav-item ms-4">
+      <li class="nav-item ms-3 ms-md-4">
           {% bs_link class="nav-link" href=page.url label=page.title %}
       </li>
     {% endfor %}
