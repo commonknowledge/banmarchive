@@ -14,7 +14,7 @@ def register_import_menu():
 @hooks.register('register_admin_urls')
 def urlconf_bulk_upload():
     return [
-        path('upload/', views.ArticlesMissingContentView.as_view(),
+        path('upload/', views.ImportView.as_view(),
              name='bulk_upload_admin'),
         path('reports/incomplete-articles/',
              views.ArticlesMissingContentView.as_view(), name='incomplete_articles'),
