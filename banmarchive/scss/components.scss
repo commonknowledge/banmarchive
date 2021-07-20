@@ -51,6 +51,12 @@
   grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
   gap: map-get($spacers, 4);
 
+  @include media-breakpoint-up(md) {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+.card-grid-oneline {
   > * {
     display: none;
   }
@@ -60,9 +66,7 @@
   > *:nth-child(2) {
     display: unset;
   }
-
   @include media-breakpoint-up(md) {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     > *:nth-child(3) {
       display: unset;
     }
@@ -119,6 +123,18 @@ a.card {
 
     > * {
       scroll-snap-align: start;
+    }
+  }
+}
+
+.article-page-images {
+  @include media-breakpoint-down(sm) {
+    > * {
+      display: none;
+    }
+
+    > :first-child {
+      display: unset;
     }
   }
 }

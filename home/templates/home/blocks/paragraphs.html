@@ -1,17 +1,18 @@
 {% load wagtailcore_tags wagtailimages_tags %}
 
 <div class="row">
-  <div class="col-9">
+  <div class="col-12 col-md-9">
     {{self.content}}
   </div>
-  <div class="col-3">
+
+  <div class="col-12 col-md-3 article-page-images">
     {% for img in side_images_with_links %}
       {% if img.issue %}
         <a href="{{img.issue.url}}">
-          {% image img.img width-197 class="mb-5" alt=img.issue.search_meta_info %}
+          {% image img.img width-197 class="mb-md-5" alt=img.issue.search_meta_info %}
         </a>
       {% else %}
-        {% image img.img width-197 class="mb-5" %}
+        {% image img.img width-197 class="mb-md-5" %}
       {% endif %}
     {% endfor %}
   </div>
