@@ -10,36 +10,11 @@ import { VariableSizeList } from "react-window";
 
 const zoomLevels = [0.125, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 4];
 
-const PDFViewer = ({ src }) => {
+const PDFViewer = ({ src, logo }) => {
   const [zoom, setZoom] = useState(1);
   const [state, setState] = useState();
 
   const stateRef = useRef();
-  const handleLoader = useCallback(async (pdf) => {
-    const midpoint = Math.ceil(pdf.numPages / 2);
-    const [first, mid, last] = await Promise.all([
-      pdf.getPage(1),
-      pdf.getPage(midpoint),
-      pdf.getPage(pdf.numPages),
-    ]);
-
-    const estDocSize =
-      getAspectRatio(first) +
-      getAspectRatio(last) +
-      getAspectRatio(mid) * (pdf.numPages - 2);
-
-    const state = {
-      cache: {
-        0: first,
-        [midpoint - 1]: mid,
-        [pdf.numPages - 1]: last,
-      },
-      pdf,
-      estAspectRatio: estDocSize / pdf.numPages,
-    };
-    stateRef.current = state;
-    setState(state);
-  });
 
   const loadMore = useCallback(async (startIndex, stopIndex) => {
     if (!stateRef.current) {
@@ -56,8 +31,10 @@ const PDFViewer = ({ src }) => {
 
     for (const i of range) {
       const page = pdf.getPage(i + 1);
-      nextCache[i] = "pending";
-      nextCache[i] = await page;
+      if (!nextCache[i]) {
+        nextCache[i] = "pending";
+        nextCache[i] = await page;
+      }
     }
 
     setState((state) => {
@@ -69,6 +46,35 @@ const PDFViewer = ({ src }) => {
     });
   }, []);
 
+  const handleLoader = useCallback(
+    async (pdf) => {
+      const midpoint = Math.ceil(pdf.numPages / 2);
+      const [first, mid, last] = await Promise.all([
+        pdf.getPage(1),
+        pdf.getPage(midpoint),
+        pdf.getPage(pdf.numPages),
+      ]);
+
+      const estDocSize =
+        getAspectRatio(first) +
+        getAspectRatio(last) +
+        getAspectRatio(mid) * (pdf.numPages - 2);
+
+      const state = {
+        cache: {
+          0: first,
+          [midpoint - 1]: mid,
+          [pdf.numPages - 1]: last,
+        },
+        pdf,
+        estAspectRatio: estDocSize / pdf.numPages,
+      };
+      stateRef.current = state;
+      setState(state);
+    },
+    [loadMore]
+  );
+
   const isItemLoaded = useCallback((index) => {
     const { cache } = stateRef.current;
     return index in cache && cache[index] !== "pending";
@@ -77,6 +83,7 @@ const PDFViewer = ({ src }) => {
   const calcPageHeight = useMemo(
     () =>
       memoize((viewportWidth) => (i) => {
+        const state = stateRef.current;
         if (!state) {
           throw Error("Pdf not yet loaded");
         }
@@ -89,7 +96,7 @@ const PDFViewer = ({ src }) => {
 
         return projectHeight({ viewportWidth, aspectRatio });
       }),
-    [isItemLoaded, state, zoom]
+    [isItemLoaded, zoom]
   );
 
   const zoomOffset = useMemo(
@@ -123,9 +130,13 @@ const PDFViewer = ({ src }) => {
     <>
       <div className="d-flex flex-column h-100">
         <div className="row w-100 gx-0 gx-md-1 p-1">
-          <div className="col-md-4"></div>
+          <div className="col-4">
+            <a class="navbar-brand d-md-none" href="#">
+              <img class="logo-tiny" src={logo} />
+            </a>
+          </div>
 
-          <div className="col-6 col-md-4 d-flex justify-content-start justify-content-md-center">
+          <div className="col-4 d-flex justify-content-center">
             <div
               className="btn-group"
               role="group"
@@ -177,7 +188,7 @@ const PDFViewer = ({ src }) => {
             </div>
           </div>
 
-          <div className="col-6 col-md-4 d-flex justify-content-end">
+          <div className="col-4 d-flex justify-content-end">
             <a
               {...zoomOffset(-1)}
               href={src}
@@ -203,6 +214,8 @@ const PDFViewer = ({ src }) => {
                   <InfiniteLoader
                     key={zoom}
                     isItemLoaded={isItemLoaded}
+                    minimumBatchSize={5}
+                    threshold={3}
                     itemCount={state.pdf.numPages}
                     loadMoreItems={loadMore}
                   >
@@ -321,5 +334,5 @@ const LoadingIndicator = () => (
 
 for (const target of document.querySelectorAll("[data-pdf]")) {
   const pdf = target.dataset.pdf;
-  render(<PDFViewer src={pdf} />, target);
+  render(<PDFViewer logo={target.dataset.logo} src={pdf} />, target);
 }

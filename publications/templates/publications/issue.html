@@ -7,7 +7,7 @@
 {% endblock %}
 
 
-{% block body_class %}overflow-auto overflow-md-hidden vh-100{% endblock %}
+{% block body_class %}overflow-md-hidden vh-md-0100{% endblock %}
 {% block body %}
 
 <header>
@@ -71,10 +71,40 @@
       </li>
     </nav>
     {% endif %}
+
+
+    <footer class="bg-panel mt-5 microcopy d-none d-md-block">
+          <div class="mb-3 me-3">
+              <p>
+                  © Barry Amiel and Norman Melburn Trust
+                  <script>document.write(new Date().getFullYear().toString())</script>
+              </p>
+              <p class="mb-0">
+                  <a href="mailto:contact@amielandmelburn.org.uk">contact@amielandmelburn.org.uk</a><br>
+                  PO Box 76805<br>
+                  London<br>
+                  SE24 4DG<br>
+                  Registered Charity No. 281239
+              </p>
+          </div>
+
+          <div>
+              <div class="mb-3">
+                  <a class="d-block d-md-inline-block me-3" href="#">Accessibility</a>
+                  <a class="d-block d-md-inline-block me-3" href="#">Privacy policy</a>
+              </div>
+
+              <div>
+                  Site by <a target="_blank" href="https://commonknowledge.coop">Common Knowledge</a>
+              </div>
+          </div>
+        </footer>
   </div>
   
-  <main data-pdf="{{ self.pdf.url }}" class="flex-grow-1 position-md-relative vh-100 h-md-auto bg-light pdf-container">
-  </main>
+  <div class="flex-grow-1 d-flex flex-column position-md-relative vh-100 h-md-auto bg-light">
+    <main class="flex-grow-1" data-logo={% static 'img/logo-small.png' %} data-pdf="{{ self.pdf.url }}" >
+    </main>
+  </div>
 </div>
 
 {% endblock %}

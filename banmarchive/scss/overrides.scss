@@ -81,6 +81,12 @@ h4 {
   @include microcopy;
 }
 
+.nanocopy,
+h4 {
+  @include microcopy;
+  font-size: 11px;
+}
+
 .list-group-item-link {
   padding: 0;
 
