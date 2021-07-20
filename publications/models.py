@@ -273,7 +273,8 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
     parent_page_types = ('MultiArticleIssue',)
 
     content_panels = AbstractArchiveItem.content_panels + [
-        FieldPanel('author_name'),
+        FieldPanel(
+            'author_name', help_text='Name of the article author. If multiple authors, separate them using commas'),
         DocumentChooserPanel('article_content'),
         FieldPanel('tags'),
         FieldPanel('intro_text'),
