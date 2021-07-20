@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 
 DEBUG = False
 SECRET_KEY = os.getenv('SECRET_KEY')
-BASE_URL = os.getenv('BASE_URL')
+BASE_URL = re.sub(r'/$', '', os.getenv('BASE_URL', ''))
 ALLOWED_HOSTS = [urlparse(BASE_URL).netloc]
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
