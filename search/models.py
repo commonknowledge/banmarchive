@@ -1,17 +1,14 @@
-from itertools import zip_longest
-import pickle
+import string
 import re
-from datetime import datetime, timezone, tzinfo
-from functools import lru_cache
+from itertools import zip_longest
 
-from nltk.stem.wordnet import WordNetLemmatizer
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+import spacy
+from nltk import tokenize
 from wagtail.core.models import Page
 from django.contrib.postgres.indexes import GinIndex
 from django.db.models.signals import post_save
-from django.utils import text
-from django.db import models
-from nltk import corpus
+from django.db import models, transaction
+
 import pdftotext
 
 IndexedPdfMixinSubclasses = []
@@ -125,166 +122,44 @@ class AdvancedSearchIndex(models.Model):
         from publications.models import Article, MultiArticleIssue
 
         if sender == Article:
-            KeywordExtractor.article_extractor().fit_keywords(
-                Article.objects.filter(id=instance.id))
+            extract_keywords(Article.objects.filter(id=instance.id))
         elif sender == MultiArticleIssue:
             for article in instance.articles:
                 AdvancedSearchIndex.index(article)
-
-
-class KeywordExtractor(models.Model):
-    slug = models.SlugField(unique=True)
-    tfidf_transformer = models.BinaryField(null=True, blank=True)
-    cv = models.BinaryField(null=True, blank=True)
-    stopwords = models.JSONField(default=list)
-    keywords = models.JSONField(default=list)
-    kw_count_article = models.IntegerField(default=100)
-    kw_count_title = models.IntegerField(default=5)
-    max_features = models.IntegerField(default=10000)
-    ngram_max = models.IntegerField(default=3)
-    max_df = models.FloatField(default=0.95)
-    last_trained = models.DateTimeField(null=True, blank=True)
-    last_generated = models.DateTimeField(null=True, blank=True)
-
-    def __str__(self):
-        return self.slug
-
-    @staticmethod
-    def article_extractor():
-        extractor, _ = KeywordExtractor.objects.get_or_create(
-            slug='article-keyword-extract')
-        return extractor
-
-    def pre_process(self, text, stopwords):
-        # lowercase
-        text = text.lower()
-
-        # remove tags
-        text = re.sub("&lt;/?.*?&gt;", " &lt;&gt; ", text)
-
-        # remove special characters and digits
-        text = re.sub("(\\d|\\W)+", " ", text)
-
-        # Convert to list from string
-        text = text.split()
-
-        # remove stopwords
-        text = [word for word in text if word not in stopwords]
-
-        # remove words less than three letters
-        text = [word for word in text if len(word) >= 3]
-
-        # lemmatize
-        lmtzr = WordNetLemmatizer()
-        text = [lmtzr.lemmatize(word) for word in text]
-
-        return ' '.join(text)
-
-    def get_stopwords(self):
-        stopwords = set(corpus.stopwords.words('english'))
-        stopwords.update(self.stopwords)
-
-        return stopwords
-
-    @property
-    def is_trained(self):
-        return self.tfidf_transformer is not None and self.cv is not None
-
-    def train_model(self, qs):
-        stopwords = self.get_stopwords()
-        all_articles = qs.iterator()
-        tfidf_transformer = TfidfTransformer(smooth_idf=True, use_idf=True)
-        cv = CountVectorizer(max_df=self.max_df,         # ignore words that appear in x% of documents
-                             max_features=self.max_features,  # the size of the vocabulary
-                             # vocabulary contains single words, <=> ngrams
-                             ngram_range=(1, self.ngram_max)
-                             )
-
-        docs = [self.pre_process(d.text_content, stopwords)
-                for d in all_articles]
-
-        word_count_vector = cv.fit_transform(docs)
-        tfidf_transformer.fit(word_count_vector)
-
-        self.tfidf_transformer = pickle.dumps(tfidf_transformer)
-        self.cv = pickle.dumps(cv)
-        self.last_trained = datetime.now(tz=timezone.utc)
-        self.save()
-
-    def fit_keywords(self, qs):
-        if not self.is_trained:
-            return
-
-        all_articles = qs.iterator()
-        cv = pickle.loads(self.cv)
-        tfidf_transformer = pickle.loads(self.tfidf_transformer)
-
-        def sort_coo(coo_matrix):
-            tuples = zip(coo_matrix.col, coo_matrix.data)
-            return sorted(tuples, key=lambda x: (x[1], x[0]), reverse=True)
-
-        def extract_topn_from_vector(feature_names, sorted_items, topn):
-            """get the feature names and tf-idf score of top n items"""
-
-            # use only topn items from vector
-            sorted_items = sorted_items[:topn]
-
-            score_vals = []
-            feature_vals = []
-
-            for idx, score in sorted_items:
-                # keep track of feature name and its corresponding score
-                score_vals.append(round(score, 3))
-                feature_vals.append(feature_names[idx])
-
-            # create a tuples of feature,score
-            # results = zip(feature_vals,score_vals)
-            results = {}
-            for idx in range(len(feature_vals)):
-                results[feature_vals[idx]] = score_vals[idx]
-
-            return results
-
-        # get feature names
-        feature_names = cv.get_feature_names()
-
-        def get_keywords(text, count):
-            # generate tf-idf for the given document
-            tf_idf_vector = tfidf_transformer.transform(
-                cv.transform([text]))
-
-            # sort the tf-idf vectors by descending order of scores
-            sorted_items = sort_coo(tf_idf_vector.tocoo())
-
-            # extract only the top n
-            res = extract_topn_from_vector(
-                feature_names, sorted_items, count)
-
-            return map(str, res)
-
-        def get_article_keywords(article):
-            return set([
-                *get_keywords(article.text_content, self.kw_count_article),
-                *get_keywords(article.title, self.kw_count_title)
-            ])
-
-        all_keywords = set(self.keywords)
-
-        # Process docs in chunks of 500
-        for articles in grouper(500, all_articles):
-            for article in articles:
-                if article is not None:
-                    keywords = get_article_keywords(article)
-                    all_keywords.update(keywords)
-                    article.tags.add(*keywords)
-                    AdvancedSearchIndex.index(article)
-
-        self.keywords = sorted(all_keywords)
-        self.last_generated = datetime.now(tz=timezone.utc)
-        self.save()
 
 
 def grouper(n, iterable, fillvalue=None):
     "grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx"
     args = [iter(iterable)] * n
     return zip_longest(fillvalue=fillvalue, *args)
+
+
+def get_nlp():
+    get_nlp._nlp = spacy.load('en_core_web_md')
+    return get_nlp._nlp
+
+
+@transaction.atomic
+def extract_keywords(qs):
+    nlp = get_nlp()
+
+    for article in qs.specific().iterator():
+        cleaned_text = "".join([
+            i.lower()
+            for i in article.text_content
+            or i not in string.punctuation]
+        )
+        cleaned_text = ' '.join(
+            i for i
+            in tokenize.word_tokenize(cleaned_text)
+            if not re.match(r'^\d+$', i)
+        )
+
+        ents = [
+            str(ent)
+            for ent in nlp(cleaned_text).ents
+            if len(str(ent)) < 100
+            and len(str(ent)) > 2
+        ]
+
+        article.tags.add(*ents)

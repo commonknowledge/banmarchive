@@ -1,11 +1,12 @@
 set -e
 
 pip install --user -r requirements.txt
+python -m spacy download en_core_web_md
 python <<EOL
 from nltk import download
 
 download('stopwords')
-download('wordnet')
+download('punkt')
 EOL
 yarn
 

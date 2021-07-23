@@ -5,7 +5,7 @@ from publications.models import Article
 
 from django.core.management.base import BaseCommand
 
-from search.models import AdvancedSearchIndex, IndexedPdfMixinSubclasses, KeywordExtractor
+from search.models import AdvancedSearchIndex, IndexedPdfMixinSubclasses
 
 
 class Command(BaseCommand):
