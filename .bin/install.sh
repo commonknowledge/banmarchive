@@ -8,7 +8,10 @@ from nltk import download
 download('stopwords')
 download('punkt')
 EOL
-yarn
+
+if [ "$SKIP_YARN" != "1" ]; then
+  yarn
+fi
 
 if [ "$SKIP_MIGRATE" != "1" ]; then
   python manage.py migrate

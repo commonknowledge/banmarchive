@@ -12,12 +12,14 @@ __pycache__
 /tmp/
 /.vagrant/
 /Vagrantfile.local
-node_modules/
+node_modules
 /npm-debug.log
 /.idea/
 .vscode
 coverage
 .python-version
+.do/
+.github/
 
 # Distribution / packaging
 .Python
@@ -38,3 +40,4 @@ wheels/
 .installed.cfg
 *.egg
 Dockerfile
+website
