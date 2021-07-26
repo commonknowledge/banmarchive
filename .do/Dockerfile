@@ -1,1 +1,2 @@
-FROM ghcr.io/commonknowledge/banmarchive:6f728ba4e63d93e03ea5d5fe79d2a628914adf1c
+FROM ghcr.io/commonknowledge/banmarchive:4dd64afff742976132348b7bad4ce587afdb444b
+RUN [  == 1 ] && SKIP_DB=1 SECRET_KEY=dummy python manage.py collectstatic --noinput --clear
