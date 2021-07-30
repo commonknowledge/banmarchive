@@ -4,6 +4,7 @@ from itertools import zip_longest
 
 import spacy
 from nltk import tokenize
+from taggit.models import Tag
 from wagtail.core.models import Page
 from django.contrib.postgres.indexes import GinIndex
 from django.db.models.signals import post_save
@@ -143,12 +144,16 @@ def get_nlp():
 def extract_keywords(qs):
     nlp = get_nlp()
 
+    def get_tag(ent):
+        tag, _ = Tag.objects.get_or_create(name=str(str(ent)))
+        return tag
+
     for article in qs.specific().iterator():
         cleaned_text = "".join([
             i.lower()
             for i in article.text_content
-            or i not in string.punctuation]
-        )
+            or i not in string.punctuation
+        ])
         cleaned_text = ' '.join(
             i for i
             in tokenize.word_tokenize(cleaned_text)
@@ -156,7 +161,7 @@ def extract_keywords(qs):
         )
 
         ents = [
-            str(ent)
+            get_tag(ent)
             for ent in nlp(cleaned_text).ents
             if len(str(ent)) < 100
             and len(str(ent)) > 2
