@@ -239,9 +239,9 @@ def add_to_query(lhs, op='and', negate=False, **kwargs):
 
 def get_advanced_search_term(match, value):
     if match == 'contains':
-        return {'keywords__iregex': value}
+        return {'keywords__regex': value.lower()}
     else:
-        return {'keywords__contains': value}
+        return {'keywords__contains': value.lower()}
 
 
 def add_decade(prevdate):

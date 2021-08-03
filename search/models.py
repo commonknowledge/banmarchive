@@ -98,15 +98,22 @@ class AdvancedSearchIndex(models.Model):
 
         def add_kw(ns, src, transform=lambda x: x):
             if src is not None:
-                keywords.append((ns, transform(src)))
+                val = transform(src)
+                if isinstance(val, str):
+                    val = val.lower()
+
+                keywords.append((ns, val))
 
         add_kw('decade', article.issue.publication_date,
                lambda date: int(date.year / 10) * 10)
-        add_kw('author', article.author_name)
+        if article.author_name:
+            for author in article.author_name.split(','):
+                add_kw('author', author.strip())
+
         add_kw('publication', article.publication.id)
 
         for tag in article.tags.all():
-            keywords.append(tag.name)
+            keywords.append(tag.name.lower())
 
         index, created = AdvancedSearchIndex.objects.get_or_create(
             page_id=article,
@@ -123,7 +130,7 @@ class AdvancedSearchIndex(models.Model):
         from publications.models import Article, MultiArticleIssue
 
         if sender == Article:
-            extract_keywords(Article.objects.filter(id=instance.id))
+            AdvancedSearchIndex.index(instance)
         elif sender == MultiArticleIssue:
             for article in instance.articles:
                 AdvancedSearchIndex.index(article)
@@ -140,7 +147,6 @@ def get_nlp():
     return get_nlp._nlp
 
 
-@transaction.atomic
 def extract_keywords(qs):
     nlp = get_nlp()
 
@@ -148,7 +154,7 @@ def extract_keywords(qs):
         tag, _ = Tag.objects.get_or_create(name=str(str(ent)))
         return tag
 
-    for article in qs.specific().iterator():
+    for article in qs:
         cleaned_text = "".join([
             i.lower()
             for i in article.text_content
@@ -168,3 +174,4 @@ def extract_keywords(qs):
         ]
 
         article.tags.add(*ents)
+        article.save(generate_keywords=False)

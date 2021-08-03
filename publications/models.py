@@ -16,12 +16,12 @@ from taggit.models import TaggedItemBase
 
 from helpers.content import get_children_of_type, get_page, random_model
 from helpers.thumbnail_generator import PdfThumbnailMixin
-from search.models import AdvancedSearchIndex, IndexedPdfMixin
+from search.models import AdvancedSearchIndex, IndexedPdfMixin, extract_keywords
 
 
-class PageTag(TaggedItemBase):
+class ArticleTag(TaggedItemBase):
     content_object = ParentalKey(
-        Page,
+        'publications.Article',
         related_name='tagged_items',
         on_delete=models.CASCADE
     )
@@ -41,13 +41,11 @@ class Publication(AbstractArchiveItem):
     parent_page_types = ('home.HomePage',)
 
     content_panels = AbstractArchiveItem.content_panels + [
-        FieldPanel('tags'),
         FieldPanel('short_introduction'),
         PageChooserPanel('introduction_article'),
     ]
 
     # Page fields
-    tags = ClusterTaggableManager(through=PageTag, blank=True)
     short_introduction = RichTextField(blank=True)
     introduction_article = models.OneToOneField(
         'home.ArticlePage', blank=True, null=True, related_name='introduction_for_publication', on_delete=models.SET_NULL)
@@ -132,7 +130,6 @@ class AbstractIssue(PdfThumbnailMixin, AbstractArchiveItem):
     parent_page_types = ('Publication',)
 
     search_fields = AbstractArchiveItem.search_fields + [
-        index.FilterField('tags'),
         index.FilterField('publication_date'),
     ]
 
@@ -165,7 +162,6 @@ class AbstractIssue(PdfThumbnailMixin, AbstractArchiveItem):
         return f'{self.publication.title} {self.issue_page.title}'
 
     # Page fields
-    tags = ClusterTaggableManager(through=PageTag, blank=True)
     publication_date = models.DateField(blank=True, null=True)
     volume = models.IntegerField(blank=True, null=True)
     number = models.IntegerField(blank=True, null=True)
@@ -265,7 +261,6 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
     search_fields = AbstractArchiveItem.search_fields + [
         index.SearchField('text_content'),
         index.SearchField('author_name'),
-        index.FilterField('tags'),
     ]
 
     template = 'publications/issue.html'
@@ -296,7 +291,7 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
         related_name='+'
     )
     tags = ClusterTaggableManager(
-        through=PageTag, blank=True, verbose_name='Keywords')
+        through=ArticleTag, blank=True, verbose_name='Keywords')
     text_content = models.TextField(blank=True, default='')
 
     page_image = models.ForeignKey(
@@ -350,6 +345,12 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
             nextres[-1] += '.'
 
         return ' '.join(res)
+
+    def save(self, *args, generate_keywords=True, **kwargs):
+        if generate_keywords:
+            extract_keywords((self, ))
+
+        super().save(*args, **kwargs)
 
 
 post_save.connect(AdvancedSearchIndex._handle_post_save, sender=Article)

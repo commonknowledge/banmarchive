@@ -16,7 +16,7 @@ class Command(BaseCommand):
             const=True
         )
 
-    def handle(self, all=False, train=False, training_limit=None, *args, **kwargs):
+    def handle(self, all=False, *args, **kwargs):
         if all:
             articles = Article.objects.filter()
         else:
@@ -24,4 +24,4 @@ class Command(BaseCommand):
 
         print(f'fitting {articles.count()} articles...')
 
-        extract_keywords(articles)
+        extract_keywords(articles.specific().iterator())

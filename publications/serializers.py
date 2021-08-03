@@ -30,7 +30,6 @@ class PublicationSerializer(serializers.ModelSerializer):
         model = models.Publication
         fields = COMMON_PAGE_FIELDS
 
-    tags = TagField(many=True, allow_empty=True)
     parent = serializers.PrimaryKeyRelatedField(
         queryset=models.Page.objects.all())
 
@@ -41,7 +40,6 @@ class AbstractIssueSerializer(serializers.ModelSerializer):
         fields = COMMON_PAGE_FIELDS + \
             ('publication_date', 'issue', 'volume', 'number')
 
-    tags = TagField(many=True, allow_empty=True)
     parent = serializers.PrimaryKeyRelatedField(
         queryset=models.Page.objects.all())
 
