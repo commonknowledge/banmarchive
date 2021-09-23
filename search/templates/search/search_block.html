@@ -17,9 +17,11 @@
     <label class="form-label" for="search-filter">Filter by</label>
     <select name="scope" class="form-control" id="search-filter">
       <option value="">Whole Archive</option>
-      {% for p in publications %}
-      <option{% if p.id == scope %} selected{% endif %} value="{{p.id}}">{{p.title}}</option>
-      {% endfor %}
+      <optgroup label="Publications">
+        {% for p in publications %}
+        <option{% if p.id == scope %} selected{% endif %} value="{{p.id}}">{{p.title}}</option>
+        {% endfor %}
+      </optgroup>
     </select>
   </div>
   {% else %}
