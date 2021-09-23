@@ -4,10 +4,10 @@
 {% block title %}Search{% endblock %}
 
 {% block content %}
-    <header class="container py-4">
+    <!-- <header class="container py-4">
         <h1 class="mb-2">Advanced search</h1>
 
-        <form action="{% url 'search' %}" autocomplete="off" method="get">
+        <form class="d-none d-md-block" action="{% url 'search' %}" autocomplete="off" method="get">
             <input type="hidden" name="mode" value="advanced">
 
             <div class="row mt-5 microcopy fw-bold">
@@ -164,7 +164,7 @@
             </p>
         {% endif %}
       {% endif %}
-    </main>
+    </main> -->
 {% endblock %}
 
 
@@ -175,7 +175,7 @@
 
     Array.from(document.querySelectorAll('select')).forEach(function (el) {
       const selectedIndex = Array.from(el.children).findIndex(function (child) {
-        return child.value === el.attributes.value.value
+        return child.value === el.attributes.value
       })
 
       el.selectedIndex = selectedIndex === -1 ? 0 : selectedIndex

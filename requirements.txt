@@ -46,7 +46,6 @@ openpyxl==3.0.7
 packaging==21.0
 pathy==0.6.0
 pdftotext==2.1.6
-pgmagick==0.7.6
 Pillow==8.2.0
 pipenv==2021.5.29
 platformdirs==2.1.0

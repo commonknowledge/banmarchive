@@ -1,7 +1,9 @@
 <form action="{% url 'search' %}" autocomplete="off" method="get" class="row">
   <div class="col-12 col-md pb-5 pb-md-3">
-    <label class="form-label" for="search">Search{% if defined_scope %} {{defined_scope}}{% endif %}</label>
-    <input {% if search_query %} value="{{search_query}}"{% endif %} id="search" type="text" name="query" class="form-control">
+    {% if not  nolabel %}
+      <label class="form-label" for="search">Search{% if defined_scope %} {{defined_scope}}{% endif %}</label>
+    {% endif %}
+    <input {% if nolabel %}aria-label="Search query"{% endif %} {% if search_query %} value="{{search_query}}"{% endif %} id="search" type="text" name="query" class="form-control">
     <div class="d-md-none pt-2 text-secondary">
       Example searches:
       <a class="d-inline-block ms-1" href="/search/?query=feminism">feminism</a>

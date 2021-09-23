@@ -1,7 +1,9 @@
 set -e
 
 pip install --user -r requirements.txt
+cp
 python -m spacy download en_core_web_md
+
 python <<EOL
 from nltk import download
 
