@@ -15,7 +15,7 @@
   {% if publications %}
   <div class="col-12 col-md-5 col-lg-4 pb-5 pb-md-3">
     <label class="form-label" for="search-filter">Filter by</label>
-    <select name="scope" class="form-control" id="search-filter">
+    <select name="scope" class="form-select" id="search-filter">
       <option value="">Whole Archive</option>
       {% for p in publications %}
       <option{% if p.id == scope %} selected{% endif %} value="{{p.id}}">{{p.title}}</option>
