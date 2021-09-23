@@ -176,7 +176,7 @@ def get_advanced_search_base_filter(publication, decade, author):
                          ['decade', safe_to_int(decade)]])
 
     if author:
-        q = add_to_query(q, keywords__contains=[['author', author]])
+        q = add_to_query(q, keywords__contains=[['author', author.lower()]])
 
     return q
 
