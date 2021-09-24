@@ -1,5 +1,4 @@
 from datetime import date
-import re
 from helpers.content import get_page, safe_to_int
 from django.core import paginator
 
