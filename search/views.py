@@ -150,7 +150,7 @@ def advanced_search(request):
         paginator = Paginator(objects, per_page=25)
 
         highlighter = create_highlighter(
-            *(term['value'] for term in search_terms if term['value'])
+            *(term['value'] for term in search_terms if term['value'] and not term['bool'] == 'NOT')
         )
         search_results = (
             {

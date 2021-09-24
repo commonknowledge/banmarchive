@@ -26,9 +26,13 @@
               <div class="col-3">
                   <select name="publication" class="form-select">
                     <option value="">whole archive</option>
-                    {% for pub in publications %}
-                      <option value="{{pub.id}}" {% if pub.id == filter.publication %}selected{% endif %}>{{pub.title}}</option>
-                    {% endfor %}
+                    <optgroup label="Publications">
+                      {% for pub in publications %}
+                        <option value="{{pub.id}}" {% if pub.id == filter.publication %}selected{% endif %}>
+                          {{pub.title}}
+                        </option>
+                      {% endfor %}
+                    </optgroup>
                   </select>
               </div>
 
