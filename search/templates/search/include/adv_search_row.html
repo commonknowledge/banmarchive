@@ -1,0 +1,23 @@
+<div rowfilter class="row fw-bold mb-4">
+  <div class="col-3">
+    {% if boolop %}
+      <select name="bools" class="form-select">
+        <option value="AND" {% if term.bool == "AND" %}selected{% endif %}>AND</option>
+        <option value="OR" {% if term.bool == "OR" %}selected{% endif %}>OR</option>
+        <option value="NOT" {% if term.bool == "NOT" %}selected{% endif %}>NOT</option>
+      </select>
+    {% else %}
+      <input type="hidden" name="bools" value="AND">
+    {% endif %}
+  </div>
+
+  <div class="col-3">
+    <select name="ops" class="form-select">
+      <option value="keyword" {% if term.op == "keyword" %}selected{% endif %}>matches keyword</option>
+      <option value="phrase" {% if term.op == "phrase" %}selected{% endif %}>includes phrase</option>
+    </select>
+  </div>
+  <div class="col-6">
+      <input name="values" class="form-control" value="{{term.value|default:""}}">
+  </div>
+</div>

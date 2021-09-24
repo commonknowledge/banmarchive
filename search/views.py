@@ -32,14 +32,7 @@ def search(request):
 
     # Search
     if search_query:
-        highlighter = SearchHeadline(
-            'text_content',
-            query=SearchQuery(search_query),
-            min_words=60,
-            max_words=80,
-            start_sel='<banm:hl>',
-            stop_sel="</banm:hl>"
-        )
+        highlighter = create_highlighter(search_query)
         qs = models.Article.objects.live()
 
         if scope is not None:
@@ -83,6 +76,17 @@ def get_publications():
     return models.Publication.objects.order_by('title')
 
 
+def create_highlighter(*terms):
+    return SearchHeadline(
+        'text_content',
+        query=SearchQuery(' '.join(terms)),
+        min_words=60,
+        max_words=80,
+        start_sel='<banm:hl>',
+        stop_sel="</banm:hl>"
+    )
+
+
 def get_search_highlight(page, highlighter):
     if hasattr(page, 'text_content'):
         highlights_raw = type(page).objects.annotate(
@@ -97,7 +101,7 @@ def get_search_highlight(page, highlighter):
         highlights = tuple(
             format_html(
                 '<span class="search-highlight">{}</span>{}',
-                mark_safe(highlight),
+                highlight,
                 next,
             )
             for highlight, next in highlight_groups
@@ -121,7 +125,7 @@ def advanced_search(request):
     )
 
     base_response = {
-        'decades': get_decades,
+        'decades': lambda: [str(d) for d in get_decades()],
         'publications': get_publications
     }
 
@@ -131,7 +135,7 @@ def advanced_search(request):
         author = request.GET.get('author')
         page = get_page(request)
 
-        filter = and_all(
+        filter = bool_op(
             get_advanced_search_base_filter(
                 publication, decade, author),
             get_advanced_search_boolean_filter(search_terms)
@@ -143,15 +147,22 @@ def advanced_search(request):
             objects = models.AdvancedSearchIndex.objects.all()
 
         paginator = Paginator(objects, per_page=25)
+
+        highlighter = create_highlighter(
+            *(term['value'] for term in search_terms if term['value'] and not term['bool'] == 'NOT')
+        )
         search_results = (
-            page.page_id
+            {
+                'highlight': get_search_highlight(page.page_id.specific, highlighter),
+                'page': page.page_id.specific
+            }
             for page in paginator.page(page).object_list
         )
 
         return TemplateResponse(request, 'search/advanced.html', {
             **base_response,
             'filter': {
-                'publication': publication,
+                'publication': int(publication) if publication else '',
                 'decade': str(decade),
                 'author': author
             },
@@ -169,50 +180,39 @@ def get_advanced_search_base_filter(publication, decade, author):
 
     if publication:
         q = add_to_query(q, keywords__contains=[
-                         ['publication', safe_to_int(publication)]])
+            ['publication', safe_to_int(publication)]])
 
     if decade:
         q = add_to_query(q, keywords__contains=[
-                         ['decade', safe_to_int(decade)]])
+            ['decade', safe_to_int(decade)]])
 
     if author:
-        q = add_to_query(q, keywords__contains=[['author', author]])
+        q = add_to_query(q, keywords__contains=[['author', author.lower()]])
 
     return q
 
 
 def get_advanced_search_boolean_filter(search_terms):
-    ors = tuple(t for t in search_terms if t['bool'] == 'OR')
-    ands = tuple(t for t in search_terms if t['bool'] != 'OR')
-
-    and_q = None
-    for term in ands:
-        bool_op = term['bool']
+    filter = None
+    for term in search_terms:
+        bool_op_type = term['bool']
         value = term['value']
         op = term['op']
 
-        if value:
-            and_q = add_to_query(
-                and_q,
-                **get_advanced_search_term(op, value),
-                negate=(bool_op == 'NOT'))
+        if not value:
+            continue
 
-    or_q = None
-    for term in ors:
-        bool_op = term['bool']
-        value = term['value']
-        op = term['op']
+        filter = bool_op(
+            filter,
+            get_advanced_search_term(op, value),
+            op=bool_op_type
+        )
 
-        if value:
-            or_q = add_to_query(
-                or_q,
-                **get_advanced_search_term(op, value),
-                op='or')
-
-    return and_all(and_q, or_q, op='or')
+    return filter
 
 
-def and_all(*args, op='and', negate=False):
+def bool_op(*args, op='and', negate=False):
+    op = op.lower()
     lhs = None
 
     for rhs in args:
@@ -226,6 +226,8 @@ def and_all(*args, op='and', negate=False):
             lhs = rhs
         elif op == 'and':
             lhs = lhs & rhs
+        elif op == 'not':
+            lhs = lhs & ~rhs
         else:
             lhs = lhs | rhs
 
@@ -234,14 +236,11 @@ def and_all(*args, op='and', negate=False):
 
 def add_to_query(lhs, op='and', negate=False, **kwargs):
     rhs = Q(**kwargs)
-    return and_all(lhs, rhs, negate=negate, op=op)
+    return bool_op(lhs, rhs, negate=negate, op=op)
 
 
 def get_advanced_search_term(match, value):
-    if match == 'contains':
-        return {'keywords__regex': value.lower()}
-    else:
-        return {'keywords__contains': value.lower()}
+    return Q(keywords__contains=value.lower())
 
 
 def add_decade(prevdate):
