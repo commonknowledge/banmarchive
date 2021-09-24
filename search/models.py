@@ -104,7 +104,7 @@ class AdvancedSearchIndex(models.Model):
 
                 keywords.append((ns, val))
 
-        add_kw('decade', article.issue.publication_date,
+        add_kw('decade', article.issue_page.publication_date,
                lambda date: int(date.year / 10) * 10)
         if article.author_name:
             for author in article.author_name.split(','):
@@ -127,13 +127,15 @@ class AdvancedSearchIndex(models.Model):
 
     @staticmethod
     def _handle_post_save(sender, instance, **kwargs):
-        from publications.models import Article, MultiArticleIssue
+        from publications.models import Article, MultiArticleIssue, SimpleIssue
 
         if sender == Article:
             AdvancedSearchIndex.index(instance)
         elif sender == MultiArticleIssue:
             for article in instance.articles:
                 AdvancedSearchIndex.index(article)
+        elif sender == SimpleIssue:
+            AdvancedSearchIndex.index(instance)
 
 
 def grouper(n, iterable, fillvalue=None):
