@@ -41,13 +41,13 @@
 
 
     <form method="GET" action="/search/" class="mb-3">
-      <label for="exampleFormControlInput1" class="form-label">Search</label>
+      <label for="exampleFormControlInput1" class="form-label">Search This Issue</label>
 
       <div class="input-group">
         <input type="hidden" name="scope" value="{{ self.issue_page.id }}">
         <input id="search" name="query" type="text" class="form-control" aria-describedby="button-search">
   
-        <button class="btn btn-primary" type="button" aria-label="Search" id="button-search">
+        <button class="btn btn-primary" type="submit" aria-label="Search" id="button-search">
           <svg width="26" height="27" viewBox="0 0 26 27" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M18.3435 16.9249C19.5383 15.2619 20.2395 13.2263 20.2395 11.0363C20.2395 5.44704 15.709 0.916504 10.1198 0.916504C4.53054 0.916504 0 5.44704 0 11.0363C0 16.6255 4.53054 21.156 10.1198 21.156C12.3098 21.156 14.3454 20.4548 16.0084 19.26L23.6802 26.9165L26 24.5967L18.3435 16.9249ZM3.11377 11.0363C3.11377 14.9129 6.24311 18.0423 10.1198 18.0423C13.9964 18.0423 17.1257 14.9129 17.1257 11.0363C17.1257 7.15962 13.9964 4.03028 10.1198 4.03028C6.24311 4.03028 3.11377 7.15962 3.11377 11.0363Z" fill="white"/>
           </svg>
@@ -90,8 +90,8 @@
 
           <div>
               <div class="mb-3">
-                  <a class="d-block d-md-inline-block me-3" href="#">Accessibility</a>
-                  <a class="d-block d-md-inline-block me-3" href="#">Privacy policy</a>
+                  <a class="d-block d-md-inline-block me-3" href="/accessibility">Accessibility</a>
+                  <a class="d-block d-md-inline-block me-3" href="/privacy">Privacy policy</a>
               </div>
 
               <div>
