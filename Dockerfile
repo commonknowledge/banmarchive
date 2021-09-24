@@ -1,7 +1,4 @@
-FROM ghcr.io/commonknowledge/do-app-baseimage-django-node:8b90c81ac3640d0b0e84f4730dbf5dcc4d2351f2 as assets
-
-# Support system-provided packages
-ENV PYTHONPATH /usr/lib/python3/dist-packages
+FROM ghcr.io/commonknowledge/do-app-baseimage-django-node@sha256:04130461fd163f935f2fd3ee9ed8c12c11dd91c11c6cfcc9342c013311e4a986 as assets
 
 # Install yarn dependencies, using external cache
 COPY package.json yarn.lock .
@@ -14,7 +11,7 @@ COPY --chown=app:app . .
 ENV NODE_ENV=production
 RUN yarn webpack
 
-FROM ghcr.io/commonknowledge/do-app-baseimage-django-node:8b90c81ac3640d0b0e84f4730dbf5dcc4d2351f2
+FROM ghcr.io/commonknowledge/do-app-baseimage-django-node@sha256:04130461fd163f935f2fd3ee9ed8c12c11dd91c11c6cfcc9342c013311e4a986
 
 # Support system-provided packages
 ENV PYTHONPATH /usr/lib/python3/dist-packages
