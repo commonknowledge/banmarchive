@@ -27,6 +27,14 @@ class ArticleTag(TaggedItemBase):
     )
 
 
+class SimpleIssueTag(TaggedItemBase):
+    content_object = ParentalKey(
+        'publications.SimpleIssue',
+        related_name='tagged_items',
+        on_delete=models.CASCADE
+    )
+
+
 class AbstractArchiveItem(Page):
     class Meta:
         abstract = True
@@ -179,9 +187,13 @@ class SimpleIssue(IndexedPdfMixin, AbstractIssue):
     # Config
     thumbnail_attribute = 'cover_image'
 
-    content_panels = [DocumentChooserPanel('issue_content'),
-                      FieldPanel('text_content'), ] + \
-        AbstractIssue.content_panels
+    content_panels = [
+        DocumentChooserPanel('issue_content'),
+        FieldPanel('text_content'),
+        FieldPanel('tags'),
+        FieldPanel(
+            'author_name', help_text='Names of authors of articles in this issue, separated using commas'),
+    ] + AbstractIssue.content_panels
 
     search_fields = AbstractIssue.search_fields + [
         index.SearchField('text_content'),
@@ -192,6 +204,9 @@ class SimpleIssue(IndexedPdfMixin, AbstractIssue):
     pdf_text_mapping = {
         'issue_content': 'text_content'
     }
+
+    author_name = models.TextField(
+        verbose_name='Author Names', blank=True, default='')
 
     def get_thumbnail_document(self):
         return self.issue_content
@@ -206,6 +221,9 @@ class SimpleIssue(IndexedPdfMixin, AbstractIssue):
     )
     text_content = models.TextField(blank=True, default='')
 
+    tags = ClusterTaggableManager(
+        through=SimpleIssueTag, blank=True, verbose_name='Keywords')
+
     # Data
     @property
     def pdf(self):
@@ -214,6 +232,12 @@ class SimpleIssue(IndexedPdfMixin, AbstractIssue):
     @property
     def search_meta_info(self):
         return f'{self.publication.title}'
+
+    def save(self, *args, generate_keywords=True, **kwargs):
+        if generate_keywords:
+            extract_keywords((self, ))
+
+        super().save(*args, **kwargs)
 
 
 class MultiArticleIssue(AbstractIssue):
@@ -354,5 +378,6 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
 
 
 post_save.connect(AdvancedSearchIndex._handle_post_save, sender=Article)
+post_save.connect(AdvancedSearchIndex._handle_post_save, sender=SimpleIssue)
 post_save.connect(AdvancedSearchIndex._handle_post_save,
                   sender=MultiArticleIssue)

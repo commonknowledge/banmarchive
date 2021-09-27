@@ -1,5 +1,5 @@
 from django.db import transaction
-from publications.models import Article
+from publications.models import Article, SimpleIssue
 
 from django.core.management.base import BaseCommand
 
@@ -17,11 +17,13 @@ class Command(BaseCommand):
         )
 
     def handle(self, all=False, *args, **kwargs):
-        if all:
-            articles = Article.objects.filter()
-        else:
-            articles = Article.objects.filter(tagged_items=None)
+        for model in [Article, SimpleIssue]:
+            if all:
+                articles = model.objects.filter()
+            else:
+                articles = model.objects.filter(tagged_items=None)
 
-        print(f'fitting {articles.count()} articles...')
+            print(f'fitting {articles.count()} {model.__name__}...')
 
-        extract_keywords(articles.specific().iterator())
+            extract_keywords(articles.specific().iterator())
+
