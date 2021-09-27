@@ -160,7 +160,7 @@ def extract_keywords(qs):
         cleaned_text = "".join([
             i.lower()
             for i in article.text_content
-            or i not in string.punctuation
+            if i or i not in string.punctuation
         ])
         cleaned_text = ' '.join(
             i for i
