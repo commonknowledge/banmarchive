@@ -5,7 +5,7 @@ from wagtail.search import queryset
 
 from publications import models
 
-COMMON_PAGE_FIELDS = ('id', 'title', 'tags', 'slug', 'parent')
+COMMON_PAGE_FIELDS = ('id', 'title', 'slug', 'parent')
 
 
 class TagField(serializers.RelatedField):
@@ -64,7 +64,6 @@ class ArticleSerializer(serializers.ModelSerializer):
         fields = COMMON_PAGE_FIELDS + \
             ('article_content', 'author_name', 'intro_text')
 
-    tags = TagField(many=True, allow_empty=True)
     article_content = serializers.PrimaryKeyRelatedField(
         queryset=Document.objects.all())
     parent = serializers.PrimaryKeyRelatedField(

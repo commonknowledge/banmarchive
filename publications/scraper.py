@@ -76,7 +76,6 @@ def scrape(endpoint, auth, root_id):
             'slug': slugify(pub_data['title']),
             'title': pub_data['title'],
             'parent': root_id,
-            'tags': ()
         })
 
         if pub_data['type'] == 'multi':
@@ -104,7 +103,6 @@ def scrape(endpoint, auth, root_id):
                     'issue': issue_data.get('issue'),
                     'volume': issue_data.get('volume'),
                     'number': issue_data.get('number'),
-                    'tags': ()
                 })
 
                 for article_data in issue_data['articles']:
@@ -120,7 +118,6 @@ def scrape(endpoint, auth, root_id):
                         'parent': issue_resource['id'],
                         'intro_text': article_data.get('intro'),
                         'author_name': article_data.get('author'),
-                        'tags': ()
                     })
         else:
             for issue_data in pub_data['issues']:
@@ -138,7 +135,6 @@ def scrape(endpoint, auth, root_id):
                     'issue': issue_data.get('issue'),
                     'volume': issue_data.get('volume'),
                     'number': issue_data.get('number'),
-                    'tags': ()
                 })
 
     # upload_publication(crawl_7days())
@@ -148,10 +144,10 @@ def scrape(endpoint, auth, root_id):
     # upload_publication(crawl_authors_and_titles('nr_meta', 'New Reasoner'))
     upload_publication(crawl_authors_and_titles(
         'mt', 'Marxism Today', get_mt_covers()))
-    upload_publication(crawl_authors_and_titles(
-        'soundings', 'Soundings', get_issue_cover('soundings')))
-    upload_publication(crawl_authors_and_titles(
-        'ulr_meta', 'Universities & Left Review', get_issue_cover('ulr')))
+    # upload_publication(crawl_authors_and_titles(
+    #     'soundings', 'Soundings', get_issue_cover('soundings')))
+    # upload_publication(crawl_authors_and_titles(
+    #     'ulr_meta', 'Universities & Left Review', get_issue_cover('ulr')))
 
 
 def prep_json(obj):
