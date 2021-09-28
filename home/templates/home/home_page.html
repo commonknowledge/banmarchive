@@ -19,7 +19,17 @@
   <section class="container-fluid showcase px-lg-5">
     <div class="card-grid card-grid-oneline mb-4 mb-lg-5">
       {% for issue in self.issue_sample %}
-      {% issue_card issue %}
+      <a href="{{ issue.publication.url }}" class="card">
+        {% image issue.cover_image height-163 class="card-img-top d-md-none publication-image" %}
+        {% image issue.cover_image height-364 class="card-img-top d-none d-md-block publication-image" %}
+      
+        <div class="card-body">
+          <h4 class="card-title color-secondary">
+            {{ issue.parent.title }}<br>
+            {{ issue.title }}
+          </h4>
+        </div>
+      </a>
       {% endfor %}
     </div>
   </section>
