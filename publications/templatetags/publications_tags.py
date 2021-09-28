@@ -11,3 +11,10 @@ def issue_card(issue):
     return {
         'issue': issue
     }
+
+
+@register.inclusion_tag('publications/publication_card.html')
+def publication_card(issue):
+    return {
+        'issue': issue
+    }
