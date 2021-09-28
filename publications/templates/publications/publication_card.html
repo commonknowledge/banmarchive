@@ -1,0 +1,13 @@
+{% load wagtailimages_tags %}
+
+<a href="{{ issue.publication.url }}" class="card">
+  {% image issue.cover_image height-163 class="card-img-top d-md-none publication-image" %}
+  {% image issue.cover_image height-364 class="card-img-top d-none d-md-block publication-image" %}
+
+  <div class="card-body">
+    <h4 class="card-title color-secondary">
+      {{ issue.parent.title }}<br>
+      {{ issue.title }}
+    </h4>
+  </div>
+</a>
