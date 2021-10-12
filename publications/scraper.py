@@ -12,6 +12,7 @@ import requests
 from bs4 import BeautifulSoup, Comment
 from django.conf import settings
 from django.utils.text import slugify
+from wagtail.images.views.serve import generate_image_url
 
 from helpers import parsing as ps
 
