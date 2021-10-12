@@ -192,7 +192,7 @@ def get_advanced_search_base_filter(publication, decade, author):
     return q
 
 
-def get_advanced_search_boolean_filter(search_terms, publ):
+def get_advanced_search_boolean_filter(search_terms, publication):
     filter = None
     for term in search_terms:
         bool_op_type = term['bool']
@@ -204,7 +204,7 @@ def get_advanced_search_boolean_filter(search_terms, publ):
 
         filter = bool_op(
             filter,
-            get_advanced_search_term(op, value, publ),
+            get_advanced_search_term(op, value, publication),
             op=bool_op_type
         )
 
@@ -239,7 +239,7 @@ def add_to_query(lhs, op='and', negate=False, **kwargs):
     return bool_op(lhs, rhs, negate=negate, op=op)
 
 
-def get_advanced_search_term(match, value, publ):
+def get_advanced_search_term(match, value, publication):
     if match == 'keyword':
         return Q(keywords__contains=value.lower())
 
@@ -251,10 +251,14 @@ def get_advanced_search_term(match, value, publ):
         # but we're really up against the limits of what postgres can reasonably be expected to do with a search engine
         # right now.
         scope = Page.objects.filter(
-            pk=int(publ)
-        ).first() if publ else None
+            pk=int(publication)
+        ).first() if publication else None
 
         pageids = set()
+
+        # Make sure we don't DOS ourselves by sending too ridiculous a query to the database.
+        # For reference this is about 3x the number of hits for the phrase 'women' at launch.
+        MAX_FULLTEXT_HITS = 3000
 
         for type in (models.Article, models.SimpleIssue):
             qs = type.objects.live()
@@ -262,7 +266,8 @@ def get_advanced_search_term(match, value, publ):
                 qs = qs.descendant_of(scope)
 
             res = qs.search(value, partial_match=False)
-            pageids.update(x.id for x in res)
+            if len(pageids) + len(res) < MAX_FULLTEXT_HITS:
+                pageids.update(x.id for x in res)
 
         return Q(page_id__in=pageids)
 
