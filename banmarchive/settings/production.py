@@ -9,6 +9,7 @@ ALLOWED_HOSTS = [urlparse(BASE_URL).netloc]
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
+AWS_S3_ADDRESSING_STYLE = 'virtual'
 AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME')
 AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
 AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL')
