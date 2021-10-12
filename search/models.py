@@ -8,7 +8,7 @@ from taggit.models import Tag
 from wagtail.core.models import Page
 from django.contrib.postgres.indexes import GinIndex
 from django.db.models.signals import post_save
-from django.db import models, transaction
+from django.db import models
 
 import pdftotext
 
@@ -83,6 +83,7 @@ class AdvancedSearchIndex(models.Model):
     class Meta:
         indexes = (
             GinIndex(fields=['keywords']),
+            models.indexes.Index(fields=['page_id'])
         )
 
     page_id = models.ForeignKey(Page, on_delete=models.CASCADE)
