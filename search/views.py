@@ -138,7 +138,7 @@ def advanced_search(request):
         filter = bool_op(
             get_advanced_search_base_filter(
                 publication, decade, author),
-            get_advanced_search_boolean_filter(search_terms)
+            get_advanced_search_boolean_filter(search_terms, publication)
         )
 
         if filter is not None:
@@ -192,7 +192,7 @@ def get_advanced_search_base_filter(publication, decade, author):
     return q
 
 
-def get_advanced_search_boolean_filter(search_terms):
+def get_advanced_search_boolean_filter(search_terms, publ):
     filter = None
     for term in search_terms:
         bool_op_type = term['bool']
@@ -204,7 +204,7 @@ def get_advanced_search_boolean_filter(search_terms):
 
         filter = bool_op(
             filter,
-            get_advanced_search_term(op, value),
+            get_advanced_search_term(op, value, publ),
             op=bool_op_type
         )
 
@@ -239,8 +239,32 @@ def add_to_query(lhs, op='and', negate=False, **kwargs):
     return bool_op(lhs, rhs, negate=negate, op=op)
 
 
-def get_advanced_search_term(match, value):
-    return Q(keywords__contains=value.lower())
+def get_advanced_search_term(match, value, publ):
+    if match == 'keyword':
+        return Q(keywords__contains=value.lower())
+
+    else:
+        # Do a full-text search on each model type that supports it and 'join' on the advanced index using an IN
+        # operator.
+        #
+        # This is far from an ideal way of doing it, and could perhaps be rewritten in a more efficient way,
+        # but we're really up against the limits of what postgres can reasonably be expected to do with a search engine
+        # right now.
+        scope = Page.objects.filter(
+            pk=int(publ)
+        ).first() if publ else None
+
+        pageids = set()
+
+        for type in (models.Article, models.SimpleIssue):
+            qs = type.objects.live()
+            if scope is not None:
+                qs = qs.descendant_of(scope)
+
+            res = qs.search(value, partial_match=False)
+            pageids.update(x.id for x in res)
+
+        return Q(page_id__in=pageids)
 
 
 def add_decade(prevdate):
