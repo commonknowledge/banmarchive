@@ -117,8 +117,8 @@ class Publication(AbstractArchiveItem):
     @django_cached('publications.models.Publication.random_issue', lambda self: self.id)
     def random_issue(self):
         for _ in range(5):
-            candidate = random_model(self.issues)
-            if candidate.specific.get_thumbnail_document() is not None:
+            candidate = random_model(self.issues.live())
+            if candidate is not None and candidate.specific.get_thumbnail_document() is not None:
                 return candidate
 
         return candidate

@@ -19,7 +19,9 @@
   <section class="container-fluid showcase px-lg-5">
     <div class="card-grid card-grid-oneline mb-4 mb-lg-5">
       {% for issue in self.issue_sample %}
-      {% publication_card issue %}
+        {% if issue %}
+          {% publication_card issue %}
+        {% endif %}
       {% endfor %}
     </div>
   </section>

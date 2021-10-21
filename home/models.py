@@ -49,7 +49,7 @@ class HomePage(Page):
     def issue_sample(self):
         return (
             p.random_issue()
-            for p in random_model(self.publications, count=4)
+            for p in random_model(self.publications.live().filter(numchild__gt=0), count=4)
         )
 
 
