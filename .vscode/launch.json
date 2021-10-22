@@ -9,9 +9,7 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
-      "args": [
-        "runserver"
-      ],
+      "args": ["runserver"],
       "django": true
     },
     {
@@ -35,9 +33,7 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
-      "args": [
-        "reindex_pdfs"
-      ],
+      "args": ["reindex_pdfs"],
       "django": true
     },
     {
@@ -45,9 +41,7 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
-      "args": [
-        "update_index"
-      ],
+      "args": ["update_index"],
       "justMyCode": false,
       "django": true
     },
@@ -56,9 +50,7 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
-      "args": [
-        "keyword_extract"
-      ],
+      "args": ["keyword_extract", "--all", "--no_keyword_extract"],
       "justMyCode": false,
       "django": true
     },
@@ -67,9 +59,7 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
-      "args": [
-        "regenerate_thumbnails"
-      ],
+      "args": ["regenerate_thumbnails"],
       "django": true
     },
     {
@@ -78,11 +68,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
       "cwd": "${workspaceFolder}/publications/tests",
-      "args": [
-        "test",
-        "-p",
-        "test_parser.py"
-      ],
+      "args": ["test", "-p", "test_parser.py"],
       "django": true
     },
     {
@@ -90,22 +76,15 @@
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/node_modules/.bin/webpack",
-      "args": [
-        "serve",
-        "--hot",
-        "--progress"
-      ],
+      "args": ["serve", "--hot", "--progress"],
       "console": "internalConsole",
       "internalConsoleOptions": "openOnSessionStart"
-    },
+    }
   ],
   "compounds": [
     {
       "name": "App",
-      "configurations": [
-        "Python: Django",
-        "Webpack"
-      ],
+      "configurations": ["Python: Django", "Webpack"]
     }
   ]
 }
