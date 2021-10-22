@@ -2,7 +2,7 @@ import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/toolbar/lib/styles/index.css";
 
 import { Viewer, Worker } from "@react-pdf-viewer/core";
-import { toolbarPlugin, Toolb } from "@react-pdf-viewer/toolbar";
+import { toolbarPlugin } from "@react-pdf-viewer/toolbar";
 
 import React from "react";
 import { render } from "react-dom";
@@ -20,17 +20,7 @@ const ArticleViewer = ({ src }) => {
         <div class="p-2 d-flex justify-content-center">
           <Toolbar>
             {(props) => {
-              const {
-                CurrentPageInput,
-                Download,
-                EnterFullScreen,
-                GoToNextPage,
-                GoToPreviousPage,
-                NumberOfPages,
-                Print,
-                ZoomIn,
-                ZoomOut,
-              } = props;
+              const { EnterFullScreen, ZoomIn, ZoomOut } = props;
               return (
                 <>
                   <div className="px-1">
@@ -41,12 +31,6 @@ const ArticleViewer = ({ src }) => {
                   </div>
                   <div className="px-1">
                     <EnterFullScreen />
-                  </div>
-                  <div className="px-1">
-                    <Download />
-                  </div>
-                  <div className="px-1">
-                    <Print />
                   </div>
                 </>
               );
