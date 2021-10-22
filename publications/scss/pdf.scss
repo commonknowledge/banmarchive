@@ -1,12 +1,10 @@
 .pdf-document {
   position: relative;
+  max-height: 100%;
+  flex-grow: 1;
+  flex-shrink: 1;
 }
 
-.pdf-container {
-  position: relative;
-}
-
-.pdf-page {
-  position: relative;
-  left: 18px;
+.rpv-core__inner-page {
+  background-color: rgba(0, 0, 0, 0);
 }
