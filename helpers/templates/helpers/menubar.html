@@ -2,15 +2,15 @@
 
 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
     <li class="nav-item ms-3 ms-md-4">
-        {% bs_link class="nav-link" href="/" label="Archive" %}
+        {% bs_link class="nav-link ms-md-2" href="/" label="Archive" %}
     </li>
     <li class="nav-item ms-3 ms-md-4">
-        {% bs_link class="nav-link" href="/search/" label="Search" %}
+        {% bs_link class="nav-link ms-md-2" href="/search/" label="Search" %}
     </li>
 
     {% for page in pages %}
       <li class="nav-item ms-3 ms-md-4">
-          {% bs_link class="nav-link" href=page.url label=page.title %}
+          {% bs_link class="nav-link ms-md-2" href=page.url label=page.title %}
       </li>
     {% endfor %}
 </ul>

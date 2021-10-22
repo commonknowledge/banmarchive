@@ -1,9 +1,9 @@
 <form action="{% url 'search' %}" autocomplete="off" method="get" class="row">
-  <div class="col-12 col-md pb-5 pb-md-3">
-    {% if not  nolabel %}
+  <div class="col-12 col-md pb-5 pb-md-3 d-flex flex-column justify-content-end">
+    {% if not nolabel %}
       <label class="form-label" for="search">Search{% if defined_scope %} {{defined_scope}}{% endif %}</label>
     {% endif %}
-    <input {% if nolabel %}aria-label="Search query"{% endif %} {% if search_query %} value="{{search_query}}"{% endif %} id="search" type="text" name="query" class="form-control">
+    <input {% if nolabel %}aria-label="Search query"{% endif %} {% if search_query %} value="{{search_query}}"{% endif %} id="search" type="text" name="query" class="form-control mt-1">
     <div class="d-md-none pt-2 text-secondary">
       Example searches:
       <a class="d-inline-block ms-1" href="/search/?query=feminism">feminism</a>
@@ -15,7 +15,7 @@
   {% if publications %}
   <div class="col-12 col-md-5 col-lg-4 pb-5 pb-md-3">
     <label class="form-label" for="search-filter">Filter by</label>
-    <select name="scope" class="form-select" id="search-filter">
+    <select name="scope" class="form-select mt-1" id="search-filter">
       <option value="">Whole Archive</option>
       <optgroup label="Publications">
         {% for p in publications %}
@@ -31,7 +31,7 @@
   {% endif %}
   
   <div class="col col-md-2 col-lg-3 d-flex flex-row align-items-end pb-3">
-    <button class="btn btn-primary flex-grow-1" type="submit" id="button-addon2">Search</button>
+    <button class="btn btn-primary mt-1 flex-grow-1" type="submit" id="button-addon2">Search</button>
   </div>
 </form>
 
