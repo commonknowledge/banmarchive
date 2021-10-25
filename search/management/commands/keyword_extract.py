@@ -15,8 +15,13 @@ class Command(BaseCommand):
             action='store_const',
             const=True
         )
+        parser.add_argument(
+            '--no_keyword_extract',
+            action='store_const',
+            const=True
+        )
 
-    def handle(self, all=False, *args, **kwargs):
+    def handle(self, all=False, no_keyword_extract=False, *args, **kwargs):
         for model in [Article, SimpleIssue]:
             if all:
                 articles = model.objects.filter()
@@ -25,5 +30,10 @@ class Command(BaseCommand):
 
             print(f'fitting {articles.count()} {model.__name__}...')
 
-            extract_keywords(articles.specific().iterator())
+            iterator = articles.specific().iterator()
 
+            if no_keyword_extract:
+                for article in iterator:
+                    article.save(generate_keywords=False)
+            else:
+                extract_keywords(iterator)

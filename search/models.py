@@ -107,9 +107,12 @@ class AdvancedSearchIndex(models.Model):
 
         add_kw('decade', article.issue_page.publication_date,
                lambda date: int(date.year / 10) * 10)
+
         if article.author_name:
             for author in article.author_name.split(','):
                 add_kw('author', author.strip())
+                for part in author.split(' '):
+                    add_kw('author', part.strip())
 
         add_kw('publication', article.publication.id)
 
@@ -146,18 +149,21 @@ def grouper(n, iterable, fillvalue=None):
 
 
 def get_nlp():
-    get_nlp._nlp = spacy.load('en_core_web_md')
+    if not hasattr(get_nlp, '_nlp'):
+        get_nlp._nlp = spacy.load('en_core_web_md')
     return get_nlp._nlp
 
 
 def extract_keywords(qs):
-    nlp = get_nlp()
-
     def get_tag(ent):
         tag, _ = Tag.objects.get_or_create(name=str(str(ent)))
         return tag
 
     for article in qs:
+        if article.tags.exists():
+            continue
+        nlp = get_nlp()
+
         cleaned_text = "".join([
             i.lower()
             for i in article.text_content

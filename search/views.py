@@ -10,6 +10,7 @@ from django.contrib.postgres.search import SearchHeadline, SearchQuery
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html, format_html_join
 
+from wagtail.search.utils import parse_query_string, Phrase
 from wagtail.core.models import Page
 from wagtail.search.models import Query
 
@@ -265,7 +266,7 @@ def get_advanced_search_term(match, value, publication):
             if scope is not None:
                 qs = qs.descendant_of(scope)
 
-            res = qs.search(value, partial_match=False)
+            res = qs.search(Phrase(value))
             if len(pageids) + len(res) < MAX_FULLTEXT_HITS:
                 pageids.update(x.id for x in res)
 
