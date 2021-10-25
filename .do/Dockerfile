@@ -1,1 +1,1 @@
-FROM ghcr.io/commonknowledge/banmarchive:ffd24859aebdaec21d00b195b099ff613b287877
+FROM ghcr.io/commonknowledge/banmarchive:223682f95864c4645f7b81211dc5146a176ab8e0
