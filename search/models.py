@@ -1,6 +1,8 @@
+import logging
 import string
 import re
 from itertools import zip_longest
+from nltk.sem.evaluate import Error
 
 import spacy
 from nltk import tokenize
@@ -57,26 +59,29 @@ class IndexedPdfMixin:
     def reindex_pdf_content(self, document_key: str = None, save=True):
         if document_key is None:
             for document_key in self.pdf_text_mapping.keys():
-                self.reindex_pdf_content(document_key, save=False)
+                self.reindex_pdf_content(document_key, save=save)
 
         else:
-            document_value = getattr(self, document_key, None)
-            text_content_key = self.pdf_text_mapping[document_key]
+            try:
+                document_value = getattr(self, document_key, None)
+                text_content_key = self.pdf_text_mapping[document_key]
 
-            # No document associated, set the text content to empty
-            if document_value is None or document_value.file is None:
-                setattr(self, text_content_key, '')
-                return
+                # No document associated, set the text content to empty
+                if document_value is None or document_value.file is None:
+                    setattr(self, text_content_key, '')
+                    return
 
-            # Pdf document associated, extract text from the pdf and save it to the database
-            with document_value.file.storage.open(document_value.file.name, 'rb') as fd:
-                pdf = pdftotext.PDF(fd)
-                text_content = "\n\n".join(pdf)
+                # Pdf document associated, extract text from the pdf and save it to the database
+                with document_value.file.storage.open(document_value.file.name, 'rb') as fd:
+                    pdf = pdftotext.PDF(fd)
+                    text_content = "\n\n".join(pdf)
 
-            setattr(self, text_content_key, text_content)
+                setattr(self, text_content_key, text_content)
 
-        if save:
-            self.save(reindex_pdfs=False)
+                if save:
+                    self.save(reindex_pdfs=False)
+            except Exception as ex:
+                logging.error(ex)
 
 
 class AdvancedSearchIndex(models.Model):

@@ -1,4 +1,5 @@
 from datetime import date
+import re
 from helpers.content import get_page, safe_to_int
 from django.core import paginator
 
@@ -8,7 +9,7 @@ from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.template.response import TemplateResponse
 from django.contrib.postgres.search import SearchHeadline, SearchQuery
 from django.utils.safestring import mark_safe
-from django.utils.html import format_html, format_html_join
+from django.utils.html import format_html, format_html_join, strip_tags
 
 from wagtail.search.utils import parse_query_string, Phrase
 from wagtail.core.models import Page
@@ -78,37 +79,53 @@ def get_publications():
 
 
 def create_highlighter(*terms):
+    '''
+    Get sigils rather than raw html back from postgres so that we can safely escape the text highlight before formatting
+    it.
+
+    Not that an issue of marxism today from the 70s is likely to have an xss exploit embedded in it, but still...
+    '''
     return SearchHeadline(
         'text_content',
-        query=SearchQuery(' '.join(terms)),
-        min_words=60,
-        max_words=80,
-        start_sel='<banm:hl>',
-        stop_sel="</banm:hl>"
+        query=SearchQuery(' '.join(terms), search_type='phrase'),
+        max_fragments=3,
+        fragment_delimiter='!!fragment!!',
+        start_sel='!!start!!',
+        stop_sel="!!stop!!"
     )
 
 
 def get_search_highlight(page, highlighter):
     if hasattr(page, 'text_content'):
+        '''
+        Discard any parts of fragments that potentially span 'big' line breaks as these are
+        likely to be across text blocks and hence look weird
+        '''
+
         highlights_raw = type(page).objects.annotate(
             search_highlight=highlighter).get(id=page.id).search_highlight
 
-        highlight_groups = list(
-            hl.split('</banm:hl>')
-            for hl in highlights_raw.split('<banm:hl>')
-        )
-        start = highlight_groups.pop(0)[0]
+        fragments = map(trim_frag, strip_tags(
+            highlights_raw).split('!!fragment!!'))
 
-        highlights = tuple(
-            format_html(
-                '<span class="search-highlight">{}</span>{}',
-                highlight,
-                next,
-            )
-            for highlight, next in highlight_groups
-        )
+        formatted = '<span class="search-frag-sep">…</span>'.join(fragments)
+        formatted = ' '.join(re.split(r'[\n ]+', formatted))
+        formatted = formatted.replace(
+            '!!start!!', '<span class="search-highlight">')
+        formatted = formatted.replace('!!stop!!', '</span>')
 
-        return concat_html(start, *highlights)
+        return mark_safe(formatted)
+
+
+def trim_frag(frag):
+    '''
+    Discard any parts of fragments that potentially span 'big' line breaks as these are
+    likely to be across text blocks and hence look weird
+    '''
+    frag = next((x for x in frag.split(r"\n\n+\n?")
+                 if '!!start!!' in x and '!!stop!!' in x), '')
+
+    return frag.strip().strip('.')
 
 
 def concat_html(*items):
