@@ -1,5 +1,6 @@
 from datetime import date
 import re
+from typing import Match
 from nltk.stem import PorterStemmer
 
 from wagtail.contrib.postgres_search.backend import PostgresSearchBackend, PostgresSearchQueryCompiler
@@ -55,14 +56,21 @@ def search(request):
     paginator = Paginator(search_results, 25)
 
     search_results = tuple(
-        {'page': page, 'search_highlight': get_search_highlight(
-            page.specific, search_query.split(' '), highlighter)}
+        {
+            'page': page,
+            'search_highlight': get_search_highlight(
+                page.specific,
+                # Highight the full query or partial matches
+                (*search_query.split(' '), search_query),
+                highlighter,
+                remove_partial=False
+            )
+        }
         for page in paginator.page(page)
     )
 
     return TemplateResponse(request, 'search/search.html', {
         'scope': scope,
-        'publications': models.Publication.objects.order_by('title'),
         'search_query': search_query,
         'search_results': search_results,
         'total_count': paginator.count,
@@ -98,7 +106,7 @@ def create_highlighter(*terms):
     )
 
 
-def get_search_highlight(page, terms, highlighter):
+def get_search_highlight(page, terms, highlighter, remove_partial=True):
     if hasattr(page, 'text_content'):
         '''
         Calculate from the search result what to highlight.
@@ -113,7 +121,8 @@ def get_search_highlight(page, terms, highlighter):
         formatted = '<span class="search-frag-sep">…</span>'.join(fragments)
         formatted = ' '.join(re.split(r'[\n ]+', formatted))
 
-        formatted = highight_only_phrases(formatted, terms)
+        formatted = highight_phrases(
+            formatted, terms, remove_partial=remove_partial)
         formatted = formatted.replace(
             '!!start!!', '<span class="search-highlight">')
         formatted = formatted.replace('!!stop!!', '</span>')
@@ -126,13 +135,13 @@ def trim_frag(frag):
     Discard any parts of fragments that potentially span 'big' line breaks as these are
     likely to be across text blocks and hence look weird
     '''
-    frag = next((x for x in frag.split(r"\n\n+\n?")
+    frag = next((x for x in re.split(r"\n\n+\n?", frag)
                  if '!!start!!' in x and '!!stop!!' in x), '')
 
     return frag.strip().strip('.')
 
 
-def highight_only_phrases(headline, terms):
+def highight_phrases(headline, terms, remove_partial=True):
     '''
     For some reason, can't get postgres to only highlight full phrases rather than individual matched terms.
     Even when the query we're passing to the highlighter is clearly one that only returns full-phrase matches.
@@ -141,20 +150,42 @@ def highight_only_phrases(headline, terms):
     '''
 
     stemmer = PorterStemmer()
+    terms = [t.lower() for t in terms]
 
+    def replace_highighted(match: Match):
+        words = ' '.join(match.groups())
+        return f'!!start!!{words}!!stop!!'
+
+    def replace_unhighligted(match: Match):
+        words = ' '.join(match.groups())
+        return words
+
+    # Replace consecutive matches of all of a term's words with a match of the full term
     for term in terms:
+        words = term.split(' ')
+        if len(words) == 1:
+            continue
+
         pattern = ' +'.join(
-            f'!!start!! *{stemmer.stem(word)}\\w* *!!stop!!'
-            for word in term.split(' ')
+            f'!!start!! *({word}|{stemmer.stem(word)}\\w*) *!!stop!!'
+            for word in words
         )
-        replace = f'!!start!! {term} !!stop!!'
 
-        headline, _ = re.subn(pattern, replace, headline, flags=re.I)
+        headline, _ = re.subn(pattern, replace_highighted,
+                              headline, flags=re.I)
 
-    for term in terms:
-        for word in term.split(' '):
-            pattern = f'!!start!! *{stemmer.stem(word)}\\w* *!!stop!!'
-            headline, _ = re.subn(pattern, word, headline, flags=re.I)
+    if remove_partial:
+        # Remove any matches that are a subset of the full term
+        for term in terms:
+            words = term.split(' ')
+
+            for word in words:
+                if word in terms:
+                    continue
+
+                pattern = f'!!start!! *({word}|{stemmer.stem(word)}\\w*) *!!stop!!'
+                headline, _ = re.subn(
+                    pattern, replace_unhighligted, headline, flags=re.I)
 
     return headline
 
