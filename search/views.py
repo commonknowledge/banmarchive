@@ -1,5 +1,8 @@
 from datetime import date
 import re
+from nltk.stem import PorterStemmer
+
+from wagtail.contrib.postgres_search.backend import PostgresSearchBackend, PostgresSearchQueryCompiler
 from helpers.content import get_page, safe_to_int
 from django.core import paginator
 
@@ -7,7 +10,7 @@ from django.db.models.query_utils import Q
 from helpers.cache import django_cached
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.template.response import TemplateResponse
-from django.contrib.postgres.search import SearchHeadline, SearchQuery
+from django.contrib.postgres.search import SearchHeadline, SearchQuery, SearchConfig
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html, format_html_join, strip_tags
 
@@ -53,7 +56,7 @@ def search(request):
 
     search_results = tuple(
         {'page': page, 'search_highlight': get_search_highlight(
-            page.specific, highlighter)}
+            page.specific, search_query.split(' '), highlighter)}
         for page in paginator.page(page)
     )
 
@@ -87,7 +90,7 @@ def create_highlighter(*terms):
     '''
     return SearchHeadline(
         'text_content',
-        query=SearchQuery(' '.join(terms), search_type='phrase'),
+        query=make_searchquery(*terms),
         max_fragments=3,
         fragment_delimiter='!!fragment!!',
         start_sel='!!start!!',
@@ -95,11 +98,10 @@ def create_highlighter(*terms):
     )
 
 
-def get_search_highlight(page, highlighter):
+def get_search_highlight(page, terms, highlighter):
     if hasattr(page, 'text_content'):
         '''
-        Discard any parts of fragments that potentially span 'big' line breaks as these are
-        likely to be across text blocks and hence look weird
+        Calculate from the search result what to highlight.
         '''
 
         highlights_raw = type(page).objects.annotate(
@@ -110,6 +112,8 @@ def get_search_highlight(page, highlighter):
 
         formatted = '<span class="search-frag-sep">…</span>'.join(fragments)
         formatted = ' '.join(re.split(r'[\n ]+', formatted))
+
+        formatted = highight_only_phrases(formatted, terms)
         formatted = formatted.replace(
             '!!start!!', '<span class="search-highlight">')
         formatted = formatted.replace('!!stop!!', '</span>')
@@ -126,6 +130,33 @@ def trim_frag(frag):
                  if '!!start!!' in x and '!!stop!!' in x), '')
 
     return frag.strip().strip('.')
+
+
+def highight_only_phrases(headline, terms):
+    '''
+    For some reason, can't get postgres to only highlight full phrases rather than individual matched terms.
+    Even when the query we're passing to the highlighter is clearly one that only returns full-phrase matches.
+
+    Replace adjacent indivudual highights with the full highlight then remove any partial highlights.
+    '''
+
+    stemmer = PorterStemmer()
+
+    for term in terms:
+        pattern = ' +'.join(
+            f'!!start!! *{stemmer.stem(word)}\\w* *!!stop!!'
+            for word in term.split(' ')
+        )
+        replace = f'!!start!! {term} !!stop!!'
+
+        headline, _ = re.subn(pattern, replace, headline, flags=re.I)
+
+    for term in terms:
+        for word in term.split(' '):
+            pattern = f'!!start!! *{stemmer.stem(word)}\\w* *!!stop!!'
+            headline, _ = re.subn(pattern, word, headline, flags=re.I)
+
+    return headline
 
 
 def concat_html(*items):
@@ -166,12 +197,16 @@ def advanced_search(request):
 
         paginator = Paginator(objects, per_page=25)
 
-        highlighter = create_highlighter(
-            *(term['value'] for term in search_terms if term['value'] and not term['bool'] == 'NOT')
-        )
+        fulltext_terms = [
+            term['value']
+            for term in search_terms
+            if term['value']
+            and not term['bool'] == 'NOT'
+        ]
+        highlighter = create_highlighter(*fulltext_terms)
         search_results = (
             {
-                'highlight': get_search_highlight(page.page_id.specific, highlighter),
+                'highlight': get_search_highlight(page.page_id.specific, fulltext_terms, highlighter),
                 'page': page.page_id.specific
             }
             for page in paginator.page(page).object_list
@@ -278,12 +313,14 @@ def get_advanced_search_term(match, value, publication):
         # For reference this is about 3x the number of hits for the phrase 'women' at launch.
         MAX_FULLTEXT_HITS = 3000
 
+        backend = PatchedPostgresSearchBackend()
+
         for type in (models.Article, models.SimpleIssue):
             qs = type.objects.live()
             if scope is not None:
                 qs = qs.descendant_of(scope)
 
-            res = qs.search(Phrase(value))
+            res = backend.search(Phrase(value), qs, partial_match=False)
             if len(pageids) + len(res) < MAX_FULLTEXT_HITS:
                 pageids.update(x.id for x in res)
 
@@ -292,3 +329,39 @@ def get_advanced_search_term(match, value, publication):
 
 def add_decade(prevdate):
     return date(prevdate.year + 10, prevdate.month, prevdate.day)
+
+
+class PatchedPostgresSearchBackend(PostgresSearchBackend):
+    def __init__(self):
+        super().__init__({'SEARCH_CONFIG': 'english'})
+
+    class PatchedPostgresSearchQueryCompiler(PostgresSearchQueryCompiler):
+        '''
+        Exact phrase matching is broken by the language configuration substituting stopwords, which although useful in
+        the general case, is not wanted for exact phrase matching.
+
+        Override the generation of postgres queries to not do stopword/synonym/etc substitution.
+        '''
+        query_compiler_class = PostgresSearchQueryCompiler
+
+        def build_tsquery_content(self, query, config=None, invert=False):
+            if isinstance(query, Phrase):
+                return make_searchquery(query.query_string)
+
+            return super().build_tsquery_content(query, config=config, invert=invert)
+
+    query_compiler_class = PatchedPostgresSearchQueryCompiler
+
+
+def make_searchquery(*terms):
+    '''
+    Where 'terms' is a list of phrases, match any of the full phrases identified by 'terms'
+    '''
+
+    q = None
+
+    for t in terms:
+        inner = '(' + ' <-> '.join(t.split(' ')) + ')'
+        q = inner if q is None else q + ' || ' + q
+
+    return SearchQuery(q, search_type='raw')
