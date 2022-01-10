@@ -34,6 +34,10 @@
   background-color: rgba(2, 128, 139, 0.1);
 }
 
+.search-frag-sep {
+  margin: 0 map-get($spacers, 2);
+}
+
 .publication-image {
   object-fit: contain;
   border: 1px solid $border-color;
