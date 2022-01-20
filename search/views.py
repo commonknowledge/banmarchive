@@ -1,5 +1,7 @@
+from collections import Counter
 from datetime import date
 import re
+from string import punctuation
 from typing import Match
 from nltk.stem import PorterStemmer
 
@@ -20,6 +22,7 @@ from wagtail.core.models import Page
 from wagtail.search.models import Query
 
 from publications import models
+from search.models import get_nlp
 
 
 def search(request):
@@ -107,10 +110,11 @@ def create_highlighter(*terms):
 
 
 def get_search_highlight(page, terms, highlighter, remove_partial=True):
-    if hasattr(page, 'text_content'):
-        '''
-        Calculate from the search result what to highlight.
-        '''
+    '''
+    Calculate from the search result what to highlight.
+    '''
+
+    if getattr(page, 'text_content', '').strip():
 
         highlights_raw = type(page).objects.annotate(
             search_highlight=highlighter).get(id=page.id).search_highlight
@@ -127,7 +131,14 @@ def get_search_highlight(page, terms, highlighter, remove_partial=True):
             '!!start!!', '<span class="search-highlight">')
         formatted = formatted.replace('!!stop!!', '</span>')
 
+        # If we didn't get any highligted keywords (which always happens if, eg, searching for an author)
+        # then fall back to the pre-generated article summary
+        if len(formatted.strip()) == 0:
+            return getattr(page, 'summary', '')
+
         return mark_safe(formatted)
+
+    return ''
 
 
 def trim_frag(frag):

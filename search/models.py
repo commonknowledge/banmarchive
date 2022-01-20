@@ -1,3 +1,5 @@
+from collections import Counter
+from email.policy import default
 import logging
 import string
 import re
@@ -17,7 +19,10 @@ import pdftotext
 IndexedPdfMixinSubclasses = []
 
 
-class IndexedPdfMixin:
+class IndexedPdfMixin(models.Model):
+    class Meta:
+        abstract = True
+
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
         IndexedPdfMixinSubclasses.append(cls)
@@ -26,6 +31,8 @@ class IndexedPdfMixin:
     Mapping of pdf document attributes to text attributes that should hold the document content.
     '''
     pdf_text_mapping = {}
+
+    summary = models.TextField(default='')
 
     def save(self, *args, reindex_pdfs=True, **kwargs):
         '''
@@ -36,6 +43,9 @@ class IndexedPdfMixin:
             for document_key in self.pdf_text_mapping.keys():
                 if not self.has_indexed_pdf_content(document_key):
                     self.reindex_pdf_content(document_key, save=False)
+
+                if not self.has_summary():
+                    self.regenerate_summary(save=False)
 
         return super().save(*args, **kwargs)
 
@@ -73,7 +83,7 @@ class IndexedPdfMixin:
 
                 # Pdf document associated, extract text from the pdf and save it to the database
                 with document_value.file.storage.open(document_value.file.name, 'rb') as fd:
-                    pdf = pdftotext.PDF(fd)
+                    pdf = pdftotext.PDF(fd, raw=True)
                     text_content = "\n\n".join(pdf)
 
                 setattr(self, text_content_key, text_content)
@@ -82,6 +92,19 @@ class IndexedPdfMixin:
                     self.save(reindex_pdfs=False)
             except Exception as ex:
                 logging.error(ex)
+
+    def has_summary(self):
+        return self.summary.strip() != ''
+
+    def regenerate_summary(self, save=True):
+        try:
+            key = next(iter(self.pdf_text_mapping.values()))
+            self.summary = summarize(getattr(self, key), 2)
+
+            if save:
+                self.save(reindex_pdfs=False)
+        except Exception as ex:
+            logging.error(ex)
 
 
 class AdvancedSearchIndex(models.Model):
@@ -189,3 +212,47 @@ def extract_keywords(qs):
 
         article.tags.add(*ents)
         article.save(generate_keywords=False)
+
+
+def summarize(text, limit):
+    # Copypasta: https://betterprogramming.pub/extractive-text-summarization-using-spacy-in-python-88ab96d1fd97
+    nlp = get_nlp()
+
+    keyword = []
+    pos_tag = ['PROPN', 'ADJ', 'NOUN', 'VERB']
+    punctuation = [',', '.', '-', ';', ':']
+    doc = nlp(text.lower())
+    for token in doc:
+        if(token.text in nlp.Defaults.stop_words or token.text in punctuation):
+            continue
+        if(token.pos_ in pos_tag):
+            keyword.append(token.text)
+
+    freq_word = Counter(keyword)
+    max_freq = Counter(keyword).most_common(1)[0][1]
+    for w in freq_word:
+        freq_word[w] = (freq_word[w]/max_freq)
+
+    sent_strength = {}
+    for sent in doc.sents:
+        for word in sent:
+            if word.text in freq_word.keys():
+                if sent in sent_strength.keys():
+                    sent_strength[sent] += freq_word[word.text]
+                else:
+                    sent_strength[sent] = freq_word[word.text]
+
+    summary = []
+
+    sorted_x = sorted(sent_strength.items(),
+                      key=lambda kv: kv[1], reverse=True)
+
+    counter = 0
+    for i in range(len(sorted_x)):
+        summary.append(str(sorted_x[i][0]).capitalize())
+
+        counter += 1
+        if (counter >= limit):
+            break
+
+    return ' '.join(summary)

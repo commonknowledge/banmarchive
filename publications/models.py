@@ -296,7 +296,7 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
             'author_name', help_text='Name of the article author. If multiple authors, separate them using commas'),
         DocumentChooserPanel('article_content'),
         FieldPanel('tags'),
-        FieldPanel('intro_text'),
+        FieldPanel('summary'),
         FieldPanel('text_content'),
     ]
 
@@ -306,7 +306,6 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
 
     # Page fields
     author_name = models.CharField(max_length=1024, blank=True, null=True)
-    intro_text = models.TextField(blank=True, null=True)
     article_content = models.ForeignKey(
         Document,
         null=True,
@@ -350,25 +349,6 @@ class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
     @property
     def search_meta_info(self):
         return f'{self.publication.title} {self.issue.title}'
-
-    @property
-    def search_summary(self):
-        sentences = (self.intro_text or self.text_content).split('.')
-        res = []
-
-        for s in sentences:
-            if len(res) > 60:
-                break
-
-            nextres = res + [s.strip()
-                             for s in s.split(' ') if len(s.strip()) > 0]
-            if len(nextres) > 80:
-                break
-
-            res = nextres
-            nextres[-1] += '.'
-
-        return ' '.join(res)
 
     def save(self, *args, generate_keywords=True, **kwargs):
         if generate_keywords:

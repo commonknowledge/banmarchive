@@ -28,3 +28,7 @@ class Command(BaseCommand):
                 if not obj.has_indexed_pdf_content() or all:
                     logging.info('Reindexing %s', obj)
                     obj.reindex_pdf_content()
+
+                if not obj.has_summary() or all:
+                    logging.info('Regenerating summary for %s', obj)
+                    obj.regenerate_summary()
