@@ -117,7 +117,6 @@ def scrape(endpoint, auth, root_id):
                         'title': article_data['title'] or '...',
                         'article_content': content_id,
                         'parent': issue_resource['id'],
-                        'intro_text': article_data.get('intro'),
                         'author_name': article_data.get('author'),
                     })
         else:

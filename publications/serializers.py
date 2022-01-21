@@ -62,7 +62,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Article
         fields = COMMON_PAGE_FIELDS + \
-            ('article_content', 'author_name', 'intro_text')
+            ('article_content', 'author_name')
 
     article_content = serializers.PrimaryKeyRelatedField(
         queryset=Document.objects.all())
