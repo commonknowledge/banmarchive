@@ -48,5 +48,11 @@ const ArticleViewer = ({ src }) => {
 
 for (const target of document.querySelectorAll("[data-pdf]")) {
   const pdf = target.dataset.pdf;
-  render(<ArticleViewer logo={target.dataset.logo} src={pdf} />, target);
+  const isHtml = pdf.endsWith(".html") || pdf.endsWith("htm");
+
+  if (isHtml) {
+    return <iframe src={pdf} class="w-100 h-100 overflow-y-auto" />;
+  } else {
+    render(<ArticleViewer logo={target.dataset.logo} src={pdf} />, target);
+  }
 }
