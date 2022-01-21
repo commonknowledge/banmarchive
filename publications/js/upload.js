@@ -75,7 +75,7 @@ const Uploader = () => {
 
       const getValid = (
         key,
-        { validator, error, optional, normalize = identity }
+        { validator, error: errorMsg, optional, normalize = identity }
       ) => {
         const hit = articles.find((x) => validator(normalize(x[key])));
         if (hit) {
@@ -85,7 +85,7 @@ const Uploader = () => {
             return { value: hit };
           }
 
-          return error(error);
+          return error(errorMsg);
         }
       };
 
@@ -114,14 +114,23 @@ const Uploader = () => {
           .filter((a) => !a.is_cover)
           .map((article) => {
             return {
-              title: article.article_title
+              title: article.article_title.trim()
                 ? { value: article.article_title }
                 : error("You must provide a title for each article"),
               author: article.author ? { value: article.author } : {},
               pdf: getPdf(article.filename),
             };
           }),
-        cover: getPdf(coverRow && coverRow.filename),
+        cover: !coverRow
+          ? undefined
+          : coverRow.article_title.trim()
+          ? getPdf(coverRow && coverRow.filename)
+          : {
+              ...getPdf(coverRow && coverRow.filename),
+              ...error(
+                "The article_title for the issue cover is blank. Please give it a title (such as “Covers”)"
+              ),
+            },
       };
     });
 
@@ -138,32 +147,29 @@ const Uploader = () => {
     dispatch({ type: "status", value: "pending" });
     try {
       await doUpload(status.importSpec, state.pdfs, action("progress"));
-    } catch {
+    } catch (error) {
+      console.error(error);
       dispatch({ type: "status", value: "error" });
+      dispatch({ type: "error", value: String(error) });
       return;
     }
 
     dispatch({ type: "status", value: "done" });
   }, [status, state.pdfs]);
 
-  if (state.status === "done") {
-    return (
-      <>
-        <h2>All done</h2>
-        <p>
-          Successfully uploaded all articles. Go back to the{" "}
-          <a href="/admin/">Dashboard</a> to view them.
-        </p>
-      </>
-    );
-  }
+  console.log(state);
 
   return (
     <>
       <ul className="fields">
         <li>
           <h2 style={{ paddingfontWeight: 600 }}>PDF files:</h2>
-          <div className="drop-zone" {...pdfDropzone.getRootProps()}>
+          <div
+            className="drop-zone"
+            {...pdfDropzone.getRootProps({
+              style: { overflowY: "auto", maxHeight: 400 },
+            })}
+          >
             <input {...pdfDropzone.getInputProps()} />
 
             {state.pdfs.length === 0 && (
@@ -181,7 +187,12 @@ const Uploader = () => {
 
         <li>
           <h2 style={{ paddingfontWeight: 600 }}>Metadata sheet:</h2>
-          <div className="drop-zone" {...csvDropzone.getRootProps()}>
+          <div
+            className="drop-zone"
+            {...csvDropzone.getRootProps({
+              style: { overflowY: "auto", maxHeight: 400 },
+            })}
+          >
             <input {...csvDropzone.getInputProps()} />
             {!state.csv && (
               <div>Drop a csv file of article metadata into this area.</div>
@@ -203,6 +214,71 @@ const Uploader = () => {
             <li>Press upload</li>
           </ol>
         </li>
+
+        {!["initial", "error"].includes(state.status) && (
+          <div
+            style={{
+              position: "fixed",
+              width: "100vw",
+              height: "100vh",
+              top: 0,
+              left: 0,
+              background: "rgba(255,255,255,0.7)",
+              zIndex: 100,
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                backgroundColor: "white",
+                border: "2px solid black",
+                width: 600,
+                height: 400,
+                top: "50vh",
+                left: "50vh",
+                maxWidth: "100vw",
+                maxHeight: "100vh",
+                transform: "translateY(-50%)",
+                padding: "1em",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <UploadModal
+                {...state.progress}
+                status={state.status}
+                onClose={() => {
+                  dispatch({ type: "status", value: "initial" });
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        <li>
+          <button
+            onClick={handleUpload}
+            type="button"
+            className="button button-longrunning"
+            style={{ marginBottom: "2em" }}
+            disabled={!status.valid || state.status === "pending"}
+          >
+            <em>Upload</em>
+          </button>
+        </li>
+
+        {state.status === "error" && (
+          <div style={{ color: "red" }}>
+            Sorry, something went wrong with your upload:
+            <div style={{ marginTop: "1em", marginBottom: "1em" }}>
+              {state.error}
+            </div>
+            Please let us know:{" "}
+            <a href="mailto:hello@commonknowledge.coop">
+              hello@commonknowledge.coop
+            </a>
+          </div>
+        )}
 
         {status.importSpec && (
           <li>
@@ -313,25 +389,6 @@ const Uploader = () => {
       </ul>
 
       <li>
-        <button
-          onClick={handleUpload}
-          type="button"
-          className="button button-longrunning"
-          style={{ marginBottom: "2em" }}
-          disabled={!status.valid}
-        >
-          <em>Upload</em>
-        </button>
-
-        {state.progress && <div>{state.progress}</div>}
-        {state.status === "error" && (
-          <div style={{ color: "red" }}>
-            Sorry, something went wrong with your upload. Please try again.
-          </div>
-        )}
-      </li>
-
-      <li>
         <h2 style={{ fontWeight: 600 }}>
           Guidance for producing metadata sheets:
         </h2>
@@ -404,6 +461,123 @@ const Uploader = () => {
   );
 };
 
+const UploadModal = ({
+  status,
+  current,
+  total,
+  currentIssue,
+  currentIssueName,
+  totalIssues,
+  log,
+  errors,
+  onClose,
+}) => {
+  if (status === "done") {
+    if (errors?.length > 0) {
+      return (
+        <>
+          <h2 style={{ marginBottom: "2em" }}>Upload completed with errors</h2>
+          <div
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              color: "rgba(255,0,0,0.8)",
+            }}
+          >
+            {errors.map((x, i) => (
+              <div key={i}>{x}</div>
+            ))}
+          </div>
+
+          <div style={{ flex: 1 }}></div>
+
+          <div style={{ marginBottom: "1em" }}>
+            Try creating these articles in the{" "}
+            <a href="http://localhost:8000/admin">Main admin view</a>. Need
+            help? Email us:{" "}
+            <a href="mailto:hello@commonknowledge.coop">
+              hello@commonknowledge.coop
+            </a>
+          </div>
+
+          <button
+            style={{ alignSelf: "flex-start" }}
+            onClick={onClose}
+            type="button"
+            className="button"
+          >
+            Close
+          </button>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <h2 style={{ marginBottom: "2em" }}>Upload completed</h2>
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            color: "rgba(0,0,0,0.8)",
+            marginBottom: "1em",
+          }}
+        >
+          {log.map((x, i) => (
+            <div key={i}>{x}</div>
+          ))}
+        </div>
+
+        <button
+          style={{ alignSelf: "flex-start" }}
+          onClick={onClose}
+          type="button"
+          className="button"
+        >
+          Close
+        </button>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <h2 style={{ marginBottom: "2em" }}>Uploading…</h2>
+
+      <progress
+        style={{ width: "100%", height: "1em" }}
+        max={total}
+        value={current}
+      />
+
+      <div
+        style={{
+          fontWeight: 600,
+          marginTop: "1em",
+          textAlign: "start",
+          width: "100%",
+        }}
+      >
+        Uploading {currentIssueName} ({currentIssue} / {totalIssues})
+      </div>
+
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          color: "rgba(0,0,0,0.8)",
+          fontSize: 11,
+          marginTop: "1em",
+        }}
+      >
+        {log.map((x, i) => (
+          <div key={i}>{x}</div>
+        ))}
+      </div>
+    </>
+  );
+};
+
 const SpecValue = ({ error, value }) => {
   let txt = value;
   if (value === "" || typeof value === "undefined" || value === "none") {
@@ -439,8 +613,18 @@ const loadCsv = ([acceptedFile]) => {
 };
 
 const initialState = {
+  status: "initial",
   pdfs: [],
   csv: undefined,
+  progress: {
+    current: 0,
+    total: 0,
+    currentIssueName: "",
+    currentIssue: 0,
+    totalIssues: 0,
+    log: [],
+    errors: [],
+  },
 };
 
 const reducer = (state, action) => {
@@ -458,12 +642,20 @@ const reducer = (state, action) => {
     return {
       ...state,
       status: action.value,
+      progress:
+        action.value === "initial" ? initialState.progress : state.progress,
     };
   }
   if (action.type === "progress") {
     return {
       ...state,
       progress: action.value,
+    };
+  }
+  if (action.type === "error") {
+    return {
+      ...state,
+      error: action.value,
     };
   }
   if (action.type === "loadCsv") {
@@ -575,57 +767,116 @@ const doUpload = async (importSpec, pdfs, onProgress) => {
     });
   });
 
+  let progress = {
+    current: 1,
+    total: 0,
+    currentIssueName: "",
+    currentIssue: 1,
+    totalIssues: importSpec.length,
+    log: [],
+    errors: [],
+  };
+
   for (const issueSpec of importSpec) {
-    onProgress(`Uploaded ${numUploaded}/${totalCount} articles`);
+    progress.total += issueSpec.articles.length;
+  }
 
-    const publication = await getPublication(issueSpec.publication.value);
+  for (const issueSpec of importSpec) {
+    const issueLogName = `${issueSpec.publication.value} ${issueSpec.title}`;
 
-    const coverTitle = [
-      issueSpec.publication.value,
-      issueSpec.title,
-      "Cover",
-    ].join(" ");
+    try {
+      progress = {
+        ...progress,
+        currentIssueName: issueLogName,
+      };
+      onProgress(progress);
 
-    const coverDoc =
-      issueSpec.cover.value &&
-      (await uploadDocument(issueSpec.cover.value, coverTitle));
+      const publication = await getPublication(issueSpec.publication.value);
 
-    const issue = await postTo("issues/multi", {
-      json: {
-        parent: publication.id,
-        title: issueSpec.title,
-        publication_date: issueSpec.publication_date.value,
-        issue: issueSpec.issue_no.value,
-        volume: issueSpec.volume_no.value,
-        issue_cover: coverDoc,
-        tags: [],
-      },
-    });
-
-    for (const articleSpec of issueSpec.articles) {
-      const docTitle = [
+      const coverTitle = [
         issueSpec.publication.value,
         issueSpec.title,
-        articleSpec.title.value,
+        "Cover",
       ].join(" ");
 
-      const articleDoc = await uploadDocument(articleSpec.pdf.value, docTitle);
+      const coverDoc =
+        issueSpec.cover.value &&
+        (await uploadDocument(issueSpec.cover.value, coverTitle));
 
-      await postTo("articles", {
+      const issue = await postTo("issues/multi", {
         json: {
-          title: articleSpec.title.value,
-          parent: issue.id,
-          article_content: articleDoc,
-          author_name: articleSpec.author.value,
+          parent: publication.id,
+          title: issueSpec.title,
+          publication_date: issueSpec.publication_date.value,
+          issue: issueSpec.issue_no.value,
+          volume: issueSpec.volume_no.value,
+          issue_cover: coverDoc,
           tags: [],
         },
       });
 
-      numUploaded += 1;
+      for (const articleSpec of issueSpec.articles) {
+        const articleLogName = `${issueLogName} ${articleSpec.title.value}`;
+
+        try {
+          const docTitle = [
+            issueSpec.publication.value,
+            issueSpec.title,
+            articleSpec.title.value,
+          ].join(" ");
+
+          const articleDoc = await uploadDocument(
+            articleSpec.pdf.value,
+            docTitle
+          );
+
+          await postTo("articles", {
+            json: {
+              title: articleSpec.title.value,
+              parent: issue.id,
+              article_content: articleDoc,
+              author_name: articleSpec.author.value,
+              tags: [],
+            },
+          });
+
+          progress = {
+            ...progress,
+            current: progress.current + 1,
+            log: [`Uploaded ${articleLogName}`, ...progress.log],
+          };
+          onProgress(progress);
+        } catch (error) {
+          console.error(error);
+          const logItem = `Failed to upload article: ${articleLogName}`;
+
+          progress = {
+            ...progress,
+            current: progress.current + 1,
+            errors: [...progress.errors, logItem],
+            log: [logItem, ...progress.log],
+          };
+          onProgress(progress);
+        }
+      }
+      progress = {
+        ...progress,
+        currentIssue: progress.currentIssue + 1,
+      };
+      onProgress(progress);
+    } catch (error) {
+      console.error(error);
+      const logItem = `Failed to upload issue: ${issueLogName}`;
+
+      progress = {
+        ...progress,
+        currentIssue: progress.currentIssue + 1,
+        errors: [...progress.errors, logItem],
+        log: [logItem, ...progress.log],
+      };
+      onProgress(progress);
     }
   }
-
-  onProgress(`Uploaded ${numUploaded}/${totalCount} articles`);
 };
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
