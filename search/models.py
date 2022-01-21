@@ -32,7 +32,7 @@ class IndexedPdfMixin(models.Model):
     '''
     pdf_text_mapping = {}
 
-    summary = models.TextField(default='')
+    summary = models.TextField(default='', blank=True)
 
     def save(self, *args, reindex_pdfs=True, **kwargs):
         '''
