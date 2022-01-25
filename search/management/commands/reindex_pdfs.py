@@ -18,7 +18,6 @@ class Command(BaseCommand):
             const=True
         )
 
-    @transaction.atomic
     def handle(self, *args, all=False, **kwargs):
         for cls in IndexedPdfMixinSubclasses:
             logging.info('Found %s instances of %s to index',

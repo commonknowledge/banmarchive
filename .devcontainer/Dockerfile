@@ -18,3 +18,11 @@ RUN if [ "${INSTALL_NODE}" = "true" ]; then su vscode -c "umask 0002 && . /usr/l
 
 # Install system dependencies
 RUN curl https://raw.githubusercontent.com/commonknowledge/do-app-baseimage-django-node/439e8fecc8279266fcdd80942640000a1fb5a3ba/.bin/prepare.sh | /bin/bash
+
+# Install the project requirements and build.
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -; \
+  echo "source $HOME/.poetry/env" >> "$HOME/.profile"; \
+  echo "source $HOME/.poetry/env" >> "$HOME/.bashrc"
+
+COPY pyproject.toml poetry.lock .
+RUN poetry install

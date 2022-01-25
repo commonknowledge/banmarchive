@@ -2,6 +2,8 @@
 /media/
 /static/
 *.sqlite3
+/website/
+.tmp
 
 # Python and others
 __pycache__

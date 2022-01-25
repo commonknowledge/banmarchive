@@ -83,7 +83,7 @@ class IndexedPdfMixin(models.Model):
 
                 # Pdf document associated, extract text from the pdf and save it to the database
                 with document_value.file.storage.open(document_value.file.name, 'rb') as fd:
-                    pdf = pdftotext.PDF(fd, raw=True)
+                    pdf = pdftotext.PDF(fd)
                     text_content = "\n\n".join(pdf)
 
                 setattr(self, text_content_key, text_content)

@@ -40,7 +40,7 @@ class Command(BaseCommand):
                         except Exception as ex:
                             logging.warn(
                                 'Thumbnail generation attempty failed. Reason: %s', ex)
-                            time.sleep(5)
+                            # time.sleep(5)
 
                     if not ok:
                         logging.error(

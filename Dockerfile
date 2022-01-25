@@ -1,6 +1,9 @@
-FROM ghcr.io/commonknowledge/do-app-baseimage-django-node@sha256:04130461fd163f935f2fd3ee9ed8c12c11dd91c11c6cfcc9342c013311e4a986 as assets
+FROM node:16-bullseye-slim as assets
 
 # Install yarn dependencies, using external cache
+RUN mkdir -p /app
+WORKDIR /app
+
 COPY package.json yarn.lock .
 RUN yarn install --frozen-lockfile
 
@@ -11,19 +14,60 @@ COPY --chown=app:app . .
 ENV NODE_ENV=production
 RUN yarn webpack
 
-FROM ghcr.io/commonknowledge/do-app-baseimage-django-node@sha256:04130461fd163f935f2fd3ee9ed8c12c11dd91c11c6cfcc9342c013311e4a986
+FROM python:3.9-slim-bullseye
 
-# Support system-provided packages
-ENV PYTHONPATH /usr/lib/python3/dist-packages
+RUN apt-get update -y
+RUN apt-get install --yes --quiet --no-install-recommends \
+    curl \
+    git \
+    build-essential \
+    libpq-dev \
+    libmariadb-dev \
+    libmariadb-dev-compat \
+    libjpeg62-turbo-dev \
+    zlib1g-dev \
+    libwebp-dev \
+    binutils \
+    libproj-dev \
+    gdal-bin \
+    g++ \
+    libgraphicsmagick++1-dev \
+    libboost-python-dev \
+    libtiff5-dev libopenjp2-7-dev zlib1g-dev \
+    libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev python3-tk \
+    libharfbuzz-dev libfribidi-dev libxcb1-dev \
+    python-dev libxml2-dev libxslt1-dev antiword unrtf poppler-utils tesseract-ocr \
+    flac ffmpeg lame libmad0 libsox-fmt-mp3 sox libjpeg-dev swig libpulse-dev \
+    libpoppler-cpp-dev pkg-config python3-dev ghostscript \
+    python3-pgmagick
 
+# Add user that will be used in the container.
+RUN useradd app
+
+# Use /app folder as a directory where the source code is stored.
+WORKDIR /app
+
+# Set this directory to be owned by the "app" user.
+RUN chown app:app /app
+
+RUN mkdir -p /home/app
+RUN chown app:app /home/app
+USER app
 # Install the project requirements and build.
-COPY --chown=app:app .bin/install.sh requirements.txt ./
-RUN SKIP_MIGRATE=1 SKIP_YARN=1 bash install.sh
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -; \
+  echo "source $HOME/.poetry/env" >> "$HOME/.profile"; \
+  echo "source $HOME/.poetry/env" >> "$HOME/.bashrc"
 
-# Copy the rest of the sources over
+COPY pyproject.toml poetry.lock .
+RUN bash -c "source $HOME/.poetry/env; poetry install"
+
+ENV PYTHONUNBUFFERED=1 \
+    DJANGO_SETTINGS_MODULE=banmarchive.settings.production \
+    PATH=/home/app/.poetry/bin:$PATH \
+    PORT=80
+
 COPY --chown=app:app . .
 COPY --chown=app --from=assets /app/dist ./dist
 
-ENV DJANGO_SETTINGS_MODULE=banmarchive.settings.production
-
+RUN SKIP_MIGRATE=1 SKIP_YARN=1 bash .bin/install.sh
 RUN SKIP_YARN=1 bash .bin/build.sh

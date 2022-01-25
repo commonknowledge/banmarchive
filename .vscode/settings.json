@@ -1,5 +1,5 @@
 {
-  "python.pythonPath": "/usr/local/bin/python3",
+  "python.pythonPath": "/home/vscode/.cache/pypoetry/virtualenvs/banmarchive-xS3fZVNL-py3.9/bin/python",
   "editor.formatOnSave": true,
   "[html]": {
     "editor.formatOnSave": false

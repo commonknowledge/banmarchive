@@ -59,7 +59,7 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
-      "args": ["regenerate_thumbnails"],
+      "args": ["regenerate_thumbnails", "--all"],
       "django": true
     },
     {

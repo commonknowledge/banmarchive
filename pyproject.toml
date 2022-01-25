@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "banmarchive"
+version = "0.1.0"
+description = ""
+authors = ["Common Knowledge <hello@commonknowledge.coop>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+beautifulsoup4 = "^4.9.3"
+boto3 = "^1.17.77"
+dateparser = "^1.0.0"
+dj-database-url = "0.5.0"
+Django = "^3.2.3"
+django-anymail = "^8.3"
+django-modelcluster = "^5.1"
+django-storages = "^1.11.1"
+django-taggit = "^1.4.0"
+django-webpack-loader = "1.0.0"
+djangorestframework = "^3.12.4"
+gunicorn = "^20.1.0"
+nltk = "^3.6.2"
+pdftotext = "^2.2.2"
+pgmagick = "^0.7.6"
+psycopg2 = "^2.9.3"
+PyPDF3 = "^1.0.4"
+requests = "^2.25.1"
+spacy = "^3.1.1"
+urllib3 = "^1.26.4"
+wagtail  = "^2.13"
+wagtail-transfer = "^0.8.0"
+
+[tool.poetry.dev-dependencies]
+html5lib = "^1.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
