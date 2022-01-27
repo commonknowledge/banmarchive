@@ -49,4 +49,24 @@ def soundings():
         print()
 
 
-soundings()
+def ourhistory():
+    with open('website/collections/shs/index.htm') as fd:
+        bs = BeautifulSoup(fd)
+
+    for node in bs.select('.headerlarge, a'):
+        emit(node)
+        if node.name == 'a':
+            emit(node.attrs.get('href'))
+
+            nextel = node.next_sibling
+            authors = ''
+            while nextel and not (isinstance(nextel, element.Tag) and nextel.name == 'a'):
+                authors = authors + tostring(nextel)
+                nextel = nextel.next_sibling
+
+            emit(authors.replace(' and ', ', '))
+
+        print()
+
+
+ourhistory()

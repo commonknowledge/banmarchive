@@ -800,6 +800,7 @@ const doUpload = async (importSpec, pdfs, onProgress) => {
       ].join(" ");
 
       const coverDoc =
+        issueSpec.cover &&
         issueSpec.cover.value &&
         (await uploadDocument(issueSpec.cover.value, coverTitle));
 
