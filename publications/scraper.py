@@ -142,12 +142,12 @@ def scrape(endpoint, auth, root_id):
     # upload_publication(crawl_newuniversity())
     # upload_publication(crawl_redrag())
     # upload_publication(crawl_authors_and_titles('nr_meta', 'New Reasoner'))
-    upload_publication(crawl_authors_and_titles(
-        'mt', 'Marxism Today', get_mt_covers()))
+    # upload_publication(crawl_authors_and_titles(
+    #     'mt', 'Marxism Today', get_mt_covers()))
     # upload_publication(crawl_authors_and_titles(
     #     'soundings', 'Soundings', get_issue_cover('soundings')))
-    # upload_publication(crawl_authors_and_titles(
-    #     'ulr_meta', 'Universities & Left Review', get_issue_cover('ulr')))
+    upload_publication(crawl_authors_and_titles(
+        'ulr_meta', 'Universities & Left Review', get_issue_cover('ulr')))
 
 
 def prep_json(obj):

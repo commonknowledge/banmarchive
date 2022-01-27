@@ -23,11 +23,54 @@ const Uploader = () => {
         }
 
         if (typeof key === "function") {
-          return (value) => key(value).then(action(next));
+          return (...args) => Promise.resolve(key(...args)).then(action(next));
         }
       }),
     []
   );
+
+  const loadCsv = ([acceptedFile], rejectionReasons) => {
+    if (!acceptedFile) {
+      if (rejectionReasons) {
+        console.error(rejectionReasons);
+        let message = "";
+
+        rejectionReasons.forEach((reason) => {
+          message += reason.file.name + ":";
+
+          reason.errors.forEach((error) => {
+            message += "\n" + error.message;
+          });
+        });
+
+        return dispatch({
+          type: "error",
+          value: message,
+        });
+      }
+
+      dispatch({
+        type: "error",
+        value:
+          "There's an issue with this file. Check that it is a csv file (not a regular excel file). If this keeps happening, let us know: hello@commonknowledge.coop",
+      });
+      return;
+    }
+
+    return readFileAsText(acceptedFile).then((csv) => {
+      const [header, ...rows] = parse(csv);
+
+      const rowObjects = rows.map((row, i) => ({
+        ...fromPairs(header.map((key, i) => [key, (row[i] ?? "").trim()])),
+        i: i + 1,
+      }));
+
+      return {
+        title: acceptedFile.name,
+        data: groupBy(rowObjects, "issue_title"),
+      };
+    });
+  };
 
   const pdfDropzone = useDropzone({
     onDrop: action("loadPdf"),
@@ -35,7 +78,7 @@ const Uploader = () => {
   });
   const csvDropzone = useDropzone({
     onDrop: action(loadCsv, "loadCsv"),
-    accept: "text/csv",
+    accept: ".csv",
   });
 
   const status = useMemo(() => {
@@ -200,6 +243,14 @@ const Uploader = () => {
             {state.csv && state.csv.title}
           </div>
         </li>
+
+        {state.error && (
+          <div style={{ color: "red", marginBottom: "1em" }}>
+            {state.error.split("\n").map((err, i) => (
+              <div key={i}>{err}</div>
+            ))}
+          </div>
+        )}
 
         <li>
           <ol className="info">
@@ -592,26 +643,6 @@ const SpecValue = ({ error, value }) => {
   );
 };
 
-const loadCsv = ([acceptedFile]) => {
-  if (!acceptedFile) {
-    return;
-  }
-
-  return readFileAsText(acceptedFile).then((csv) => {
-    const [header, ...rows] = parse(csv);
-
-    const rowObjects = rows.map((row, i) => ({
-      ...fromPairs(header.map((key, i) => [key, (row[i] ?? "").trim()])),
-      i: i + 1,
-    }));
-
-    return {
-      title: acceptedFile.name,
-      data: groupBy(rowObjects, "issue_title"),
-    };
-  });
-};
-
 const initialState = {
   status: "initial",
   pdfs: [],
@@ -665,6 +696,7 @@ const reducer = (state, action) => {
 
     return {
       ...state,
+      error: undefined,
       csv: action.value,
     };
   }
