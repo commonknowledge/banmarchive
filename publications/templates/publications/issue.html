@@ -66,9 +66,11 @@
         </li>
       {% endfor %}
 
+      {% if self.self.issue_page.issue_cover %}
       <li class="nav-item mb-3">
         {% bs_link label="Covers" href=self.issue_page.url class="contents-link" %}
       </li>
+      {% endif %}
     </nav>
     {% endif %}
 

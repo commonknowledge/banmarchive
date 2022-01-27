@@ -1,6 +1,7 @@
 from helpers.cache import django_cached
 from django.core.paginator import Paginator
 from django.db import models
+from django.http import HttpResponseRedirect
 from django.db.models.fields import related
 from django.db.models.signals import post_save, pre_save
 from modelcluster.fields import ParentalKey
@@ -246,13 +247,15 @@ class MultiArticleIssue(AbstractIssue):
 
     template = 'publications/issue.html'
 
-    shows_contents = True
+    @property
+    def shows_contents(self):
+        return get_children_of_type(self, Article).count() > 0
 
     content_panels = [DocumentChooserPanel('issue_cover')] + \
         AbstractIssue.content_panels
 
     def get_thumbnail_document(self):
-        return self.issue_cover
+        return self.pdf
 
     # Page fields
     issue_cover = models.ForeignKey(
@@ -269,14 +272,29 @@ class MultiArticleIssue(AbstractIssue):
 
     @property
     def pdf(self):
+        if self.issue_cover is None:
+            article = self.articles.first()
+            return article.pdf if article is not None else None
+
         return self.issue_cover
+
+    def serve(self, request, *args, **kwargs):
+        if self.issue_cover is None:
+            article = self.articles.first()
+
+            if article is not None:
+                return HttpResponseRedirect(article.url)
+
+        return super().serve(request, *args, **kwargs)
 
 
 class Article(IndexedPdfMixin, PdfThumbnailMixin, AbstractArchiveItem):
     # Config
     thumbnail_attribute = 'page_image'
 
-    shows_contents = True
+    @property
+    def shows_contents(self):
+        return get_children_of_type(self.get_parent(), Article).count() > 0
 
     pdf_text_mapping = {
         'article_content': 'text_content'
