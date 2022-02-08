@@ -3,7 +3,7 @@ import xslsx from "xlsx";
 import { render } from "react-dom";
 import { useDropzone } from "react-dropzone";
 import { formatISO, isValid, parse } from "date-fns";
-import { memoize, fromPairs, groupBy, keyBy, identity } from "lodash";
+import { memoize, times, groupBy, keyBy, identity } from "lodash";
 
 const ARCHIVE_ROOT = JSON.parse(
   document.getElementById("archive_root").innerText
@@ -12,6 +12,18 @@ const EXAMPLE_ROWS = JSON.parse(
   document.getElementById("example_rows").innerText
 );
 const EXAMPLE_COLUMNS = Object.keys(EXAMPLE_ROWS[0]);
+
+const REQUIRED_COLUMNS = [
+  "publication_date",
+  "publication",
+  "article_title",
+  "filename",
+  "issue_title",
+];
+
+const FORMATS = ["yyyy-MM-dd", "dd/MM/yyyy", "dd/MM/yy"];
+
+const DATE_FIELDS = new Set(["publication_date"]);
 
 const Uploader = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -58,7 +70,19 @@ const Uploader = () => {
       return;
     }
 
-    const DATE_FIELDS = new Set(["publication_date"]);
+    const getDefinedHeaders = (sheet) => {
+      const ref = xslsx.utils.decode_range(sheet["!ref"]);
+
+      const row = ref.s.r;
+      const startCol = ref.s.c;
+      const endCol = ref.e.c;
+
+      return times(endCol - startCol, (col) => {
+        const ref = xslsx.utils.encode_cell({ r: row, c: col + startCol });
+        const cell = sheet[ref];
+        return cell ? cell.v : undefined;
+      });
+    };
 
     return readFileData(acceptedFile).then((csv) => {
       const workbook = xslsx.read(csv, { sheets: 0, cellDates: true });
@@ -68,6 +92,24 @@ const Uploader = () => {
         header: 0,
       });
 
+      const headers = new Set(getDefinedHeaders(sheet));
+      const missingHeaders = REQUIRED_COLUMNS.filter(
+        (col) => !headers.has(col)
+      );
+
+      if (missingHeaders.length > 0) {
+        dispatch({
+          type: "error",
+          value:
+            "The following column headers are missing from the metadata sheet:\n" +
+            missingHeaders.join(", ") +
+            "\n" +
+            "These need to be in the first row.\n" +
+            "Please check your metadata sheet and try again.",
+        });
+        return;
+      }
+
       const cleanCell = (val, key) => {
         if (DATE_FIELDS.has(key)) {
           if (val instanceof Date || typeof val === "number") {
@@ -75,7 +117,6 @@ const Uploader = () => {
           }
 
           const str = String(val);
-          const FORMATS = ["yyyy-MM-dd", "dd/MM/yyyy", "dd/MM/yy"];
           for (const fmt of FORMATS) {
             const date = parse(str, fmt, new Date(1955, 0, 1));
             if (isValid(date)) {
@@ -531,7 +572,8 @@ const Uploader = () => {
             articles.
           </li>
           <li>
-            <code>publication_date</code> must be in YYYY-MM-DD format.
+            <code>publication_date</code> must be in YYYY-MM-DD or DD/MM/YYYY
+            format.
           </li>
           <li>
             <code>publication_date</code>, <code>volume_no</code> and{" "}
