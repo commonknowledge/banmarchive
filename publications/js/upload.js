@@ -2,7 +2,7 @@ import { useCallback, useMemo, useReducer } from "react";
 import xslsx from "xlsx";
 import { render } from "react-dom";
 import { useDropzone } from "react-dropzone";
-import { formatISO } from "date-fns";
+import { formatISO, isValid, parse } from "date-fns";
 import { memoize, fromPairs, groupBy, keyBy, identity } from "lodash";
 
 const ARCHIVE_ROOT = JSON.parse(
@@ -46,7 +46,7 @@ const Uploader = () => {
 
         return dispatch({
           type: "error",
-          value: message,
+          value: "Your metadata sheet could not be read. " + message,
         });
       }
 
@@ -58,6 +58,8 @@ const Uploader = () => {
       return;
     }
 
+    const DATE_FIELDS = new Set(["publication_date"]);
+
     return readFileData(acceptedFile).then((csv) => {
       const workbook = xslsx.read(csv, { sheets: 0, cellDates: true });
       const [sheet] = Object.values(workbook.Sheets);
@@ -66,20 +68,73 @@ const Uploader = () => {
         header: 0,
       });
 
-      const cleanCell = (val) => {
-        if (val instanceof Date) {
-          return formatISO(val, { representation: "date" });
+      const cleanCell = (val, key) => {
+        if (DATE_FIELDS.has(key)) {
+          if (val instanceof Date || typeof val === "number") {
+            return formatISO(val, { representation: "date" });
+          }
+
+          const str = String(val);
+          const FORMATS = ["yyyy-MM-dd", "dd/MM/yyyy", "dd/MM/yy"];
+          for (const fmt of FORMATS) {
+            const date = parse(str, fmt, new Date(1955, 0, 1));
+            if (isValid(date)) {
+              return formatISO(date, { representation: "date" });
+            }
+          }
+
+          return str;
         }
 
         return String(val).trim();
       };
 
-      const rowObjects = rows.map((row, i) => ({
+      const isNotBlank = (row) =>
+        Object.entries(row).some(
+          ([key, val]) => cleanCell(val, key.trim()).length > 0
+        );
+
+      const rowObjects = rows.filter(isNotBlank).map((row, i) => ({
         ...Object.fromEntries(
-          Object.entries(row).map(([key, val]) => [key.trim(), cleanCell(val)])
+          Object.entries(row).map(([key, val]) => [
+            key.trim(),
+            cleanCell(val, key.trim()),
+          ])
         ),
         i: i + 1,
       }));
+
+      const invalidRows = rowObjects.filter(
+        (x) => !x.issue_title || !x.publication
+      );
+
+      if (invalidRows.length > 0) {
+        const invalidLineNumbers = invalidRows.map((row) => row.i + 1);
+        let message;
+
+        if (invalidLineNumbers.length > 1) {
+          message = "Rows ";
+          message += invalidLineNumbers
+            .slice(0, invalidLineNumbers.length - 1)
+            .join(", ");
+          message += " & ";
+          message += invalidLineNumbers[invalidLineNumbers.length - 1];
+          message += " are incomplete.";
+        } else {
+          message = "Row " + invalidLineNumbers[0];
+          message += " is incomplete.";
+        }
+
+        dispatch({
+          type: "error",
+          value:
+            "Your metadata sheet could not be read:\n" +
+            message +
+            "\nAll rows must have an `issue_title` and `publication`. Please check your metadata sheet and try again.",
+        });
+
+        return;
+      }
 
       return {
         title: acceptedFile.name,
@@ -94,7 +149,8 @@ const Uploader = () => {
   });
   const csvDropzone = useDropzone({
     onDrop: action(loadCsv, "loadCsv"),
-    accept: ".csv .xlsx",
+    maxSize: 1_000_000,
+    accept: [".csv", ".xlsx"],
   });
 
   const status = useMemo(() => {
@@ -254,7 +310,9 @@ const Uploader = () => {
           >
             <input {...csvDropzone.getInputProps()} />
             {!state.csv && (
-              <div>Drop a csv file of article metadata into this area.</div>
+              <div>
+                Drop a .csv or .xlsx file of article metadata into this area.
+              </div>
             )}
             {state.csv && state.csv.title}
           </div>
@@ -613,8 +671,8 @@ const UploadModal = ({
 
       <progress
         style={{ width: "100%", height: "1em" }}
-        max={total}
-        value={current}
+        max={total + totalIssues}
+        value={current + currentIssue}
       />
 
       <div
