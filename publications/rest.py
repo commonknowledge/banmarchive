@@ -13,7 +13,7 @@ from publications import serializers, models
 from helpers.rest import api_route
 
 
-PERMISSIONS_RULES = (permissions.IsAdminUser,)
+PERMISSIONS_RULES = (permissions.DjangoModelPermissionsOrAnonReadOnly,)
 
 
 class CreateOrUpdateMixin:
