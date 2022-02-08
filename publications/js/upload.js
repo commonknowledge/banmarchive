@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useReducer } from "react";
-import { parse } from "@vanillaes/csv";
+import xslsx from "xlsx";
 import { render } from "react-dom";
 import { useDropzone } from "react-dropzone";
+import { formatISO } from "date-fns";
 import { memoize, fromPairs, groupBy, keyBy, identity } from "lodash";
 
 const ARCHIVE_ROOT = JSON.parse(
@@ -52,16 +53,31 @@ const Uploader = () => {
       dispatch({
         type: "error",
         value:
-          "There's an issue with this file. Check that it is a csv file (not a regular excel file). If this keeps happening, let us know: hello@commonknowledge.coop",
+          "There's an issue with this file. Check that it is a csv or excel (.xslx) file. If this keeps happening, let us know: hello@commonknowledge.coop",
       });
       return;
     }
 
-    return readFileAsText(acceptedFile).then((csv) => {
-      const [header, ...rows] = parse(csv);
+    return readFileData(acceptedFile).then((csv) => {
+      const workbook = xslsx.read(csv, { sheets: 0, cellDates: true });
+      const [sheet] = Object.values(workbook.Sheets);
+
+      const rows = xslsx.utils.sheet_to_json(sheet, {
+        header: 0,
+      });
+
+      const cleanCell = (val) => {
+        if (val instanceof Date) {
+          return formatISO(val, { representation: "date" });
+        }
+
+        return String(val).trim();
+      };
 
       const rowObjects = rows.map((row, i) => ({
-        ...fromPairs(header.map((key, i) => [key, (row[i] ?? "").trim()])),
+        ...Object.fromEntries(
+          Object.entries(row).map(([key, val]) => [key.trim(), cleanCell(val)])
+        ),
         i: i + 1,
       }));
 
@@ -78,7 +94,7 @@ const Uploader = () => {
   });
   const csvDropzone = useDropzone({
     onDrop: action(loadCsv, "loadCsv"),
-    accept: ".csv",
+    accept: ".csv .xlsx",
   });
 
   const status = useMemo(() => {
@@ -914,7 +930,7 @@ const doUpload = async (importSpec, pdfs, onProgress) => {
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const readFileAsText = (file) =>
+const readFileData = (file) =>
   new Promise((resolve, reject) => {
     let reader = new FileReader();
 
@@ -924,7 +940,7 @@ const readFileAsText = (file) =>
 
     reader.addEventListener("error", reject);
 
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
   });
 
 render(<Uploader />, document.getElementById("upload-widget"));
