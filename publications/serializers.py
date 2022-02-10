@@ -24,6 +24,8 @@ class DocumentSerializer(serializers.ModelSerializer):
         model = Document
         fields = ('id', 'title', 'file', )
 
+    file = serializers.FileField(max_length=1024)
+
 
 class PublicationSerializer(serializers.ModelSerializer):
     class Meta:
