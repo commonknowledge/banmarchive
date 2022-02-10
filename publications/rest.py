@@ -1,5 +1,13 @@
+from base64 import urlsafe_b64encode
+from hashlib import sha256
 import json
+import tempfile
+from typing import final
+import uuid
+from pathlib import Path
+from tempfile import TemporaryFile, tempdir
 
+from django.core.files.base import File
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.utils.text import slugify
@@ -20,30 +28,6 @@ class CreateOrUpdateMixin:
     identitfier_keys = ('parent', 'slug')
 
     def create(self, request):
-        @transaction.atomic
-        def update_or_create(defaults, **identifiers):
-            queryset = self.get_queryset()
-            parent = identifiers.pop('parent', None)
-
-            if parent is not None:
-                try:
-                    model = parent.get_children().get(**identifiers).specific
-                    for key, val in defaults.items():
-                        setattr(model, key, val)
-
-                    model.save()
-
-                except ObjectDoesNotExist:
-                    Model = queryset.model
-                    model = Model(**identifiers, **defaults)
-                    parent.add_child(instance=model)
-                    model.save()
-            else:
-                model, _ = queryset.update_or_create(
-                    defaults=defaults, **identifiers)
-
-            return model
-
         request_data = request.data
         if 'slug' in self.identitfier_keys and 'slug' not in request_data:
             if 'title' in request_data:
@@ -69,10 +53,34 @@ class CreateOrUpdateMixin:
         for key in self.identitfier_keys:
             identifiers[key] = data.pop(key)
 
-        res = update_or_create(**identifiers, defaults=data)
+        res = self.update_or_create(**identifiers, defaults=data)
 
         response_serializer = self.get_serializer(instance=res)
         return response.Response(response_serializer.data)
+
+    @transaction.atomic
+    def update_or_create(self, defaults, **identifiers):
+        queryset = self.get_queryset()
+        parent = identifiers.pop('parent', None)
+
+        if parent is not None:
+            try:
+                model = parent.get_children().get(**identifiers).specific
+                for key, val in defaults.items():
+                    setattr(model, key, val)
+
+                model.save()
+
+            except ObjectDoesNotExist:
+                Model = queryset.model
+                model = Model(**identifiers, **defaults)
+                parent.add_child(instance=model)
+                model.save()
+        else:
+            model, _ = queryset.update_or_create(
+                defaults=defaults, **identifiers)
+
+        return model
 
 
 @api_route('articles')
@@ -110,6 +118,25 @@ class DocumentsApiView(CreateOrUpdateMixin, viewsets.GenericViewSet):
     parser_classes = (parsers.MultiPartParser,)
     queryset = Document.objects.all()
     identitfier_keys = ('title',)
+
+    def update_or_create(self, defaults, **identifiers):
+        sha = sha256()
+        # tmpfile = Path(tempdir) / uuid.uuid4().hex
+        with TemporaryFile('wb+') as tmp:
+            srcfile = defaults['file']
+
+            for chunk in srcfile.chunks():
+                sha.update(chunk)
+                tmp.write(chunk)
+
+            tmp.flush()
+            tmp.seek(0)
+
+            digest = urlsafe_b64encode(sha.digest()).decode('utf-8')
+            ext = Path(srcfile.name).suffix
+
+            defaults['file'] = File(tmp, name=digest + ext)
+            return super().update_or_create(defaults, **identifiers)
 
     @action(url_path='query', detail=False)
     def check(self, request):
