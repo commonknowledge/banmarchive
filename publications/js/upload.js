@@ -827,7 +827,7 @@ const csrfToken = document.querySelector(
 const doUpload = async (importSpec, pdfs, onProgress) => {
   pdfs = keyBy(pdfs, "name");
 
-  const postTo = async (resource, { json, data, file }) => {
+  const postTo = async (resource, { json, data, file, fileName }) => {
     const baseHeaders = {
       Accept: "application/json",
       "X-CSRFToken": csrfToken,
@@ -840,7 +840,7 @@ const doUpload = async (importSpec, pdfs, onProgress) => {
       try {
         if (file) {
           const fd = new FormData();
-          fd.append("file", file);
+          fd.append("file", file, fileName);
 
           Object.keys(data).forEach((key) => {
             fd.append(key, data[key]);
@@ -898,16 +898,11 @@ const doUpload = async (importSpec, pdfs, onProgress) => {
         title,
       },
       file: pdfs[file],
+      fileName: title + ".pdf",
     });
 
     return docResource.id;
   };
-
-  let totalCount = 0;
-  let numUploaded = 0;
-  for (const issueSpec of importSpec) {
-    totalCount += issueSpec.articles.length;
-  }
 
   const getPublication = memoize((title) => {
     return postTo("publications", {

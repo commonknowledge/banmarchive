@@ -61,7 +61,7 @@ def scrape(endpoint, auth, root_id):
         def doit(file):
             return post_to('documents', data={
                 'title': title,
-            }, files={'file': file})
+            }, files={'file': (title + '.pdf', file)})
 
         try:
             with open(docpath, 'rb') as file:
