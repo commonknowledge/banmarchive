@@ -23,27 +23,40 @@ class PdfThumbnailMixin:
     def generate_pdf_thumbnail(self, save=True):
         document = self.get_thumbnail_document()
         if document is None or document.file is None:
-            return
+            setattr(self, self.thumbnail_attribute, None)
+        else:
+            with document.file.storage.open(document.file.name, 'rb') as fd:
+                imagename = get_basename(document.file.name) + '_preview.jpeg'
+                image_file = generate_pdf_thumbnail(
+                    fd, filename=imagename, height=1440)
 
-        with document.file.storage.open(document.file.name, 'rb') as fd:
-            imagename = get_basename(document.file.name) + '_preview.jpeg'
-            image_file = generate_pdf_thumbnail(
-                fd, filename=imagename, height=1440)
+            image_model = getattr(self, self.thumbnail_attribute)
+            if image_model is None:
+                image_model = WagtailImage()
+                setattr(self, self.thumbnail_attribute, image_model)
 
-        image_model = getattr(self, self.thumbnail_attribute)
-        if image_model is None:
-            image_model = WagtailImage()
-            setattr(self, self.thumbnail_attribute, image_model)
-
-        image_model.file = image_file
-        image_model.save()
+            image_model.file = image_file
+            image_model.save()
 
         if save:
             self.save(generate_thumbnail=False)
 
     def has_pdf_thumbnail(self):
+        '''
+        Return true if the page has a thumbnail image for the pdf document currently set as its cover.
+        '''
+
         image = getattr(self, self.thumbnail_attribute, None)
-        return image is not None and image.file is not None
+        if image is None or image.file is None:
+            return False
+
+        document = self.get_thumbnail_document()
+        if document is not None and document.file is not None:
+            document_preview_name = get_basename(
+                document.file.name) + '_preview.jpeg'
+            return get_filename(image.file.name) == document_preview_name
+
+        return True
 
     def save(self, *args, generate_thumbnail=True, **kwargs):
         if generate_thumbnail and not self.has_pdf_thumbnail():
@@ -82,3 +95,8 @@ def get_basename(url):
     components = url.split('/')
     last = components[len(components) - 1]
     return re.sub(r'\.\w+$', '', last)
+
+
+def get_filename(url):
+    components = url.split('/')
+    return components[len(components) - 1]
