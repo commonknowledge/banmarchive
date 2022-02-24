@@ -5,7 +5,10 @@ from urllib.parse import urlparse
 DEBUG = False
 SECRET_KEY = os.getenv('SECRET_KEY')
 BASE_URL = re.sub(r'/$', '', os.getenv('BASE_URL', ''))
-ALLOWED_HOSTS = [urlparse(BASE_URL).netloc]
+PRIMARY_HOST = urlparse(BASE_URL).netloc
+ALLOWED_HOSTS = ['*']  # Already handled by load balancer
+
+REDIRECT_PERMANENT = os.getenv('REDIRECT_PERMANENT') == 'True'
 
 DEFAULT_FILE_STORAGE = 'banmarchive.storages.DigitalOceanSpacesStorage'
 

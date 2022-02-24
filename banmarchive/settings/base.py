@@ -71,6 +71,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
 
     'wagtail.contrib.redirects.middleware.RedirectMiddleware',
+    'banmarchive.middleware.canonical_host_redirect',
 ]
 
 ROOT_URLCONF = 'banmarchive.urls'
@@ -225,3 +226,5 @@ LOGGING = {
         },
     },
 }
+
+REDIRECT_PERMANENT = False
