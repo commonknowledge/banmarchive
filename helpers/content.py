@@ -21,7 +21,10 @@ def random_model(qs, count=None):
     indexes = list(range(0, max(qs_count, count)))
     shuffle(indexes)
 
-    return tuple(qs[i].specific for i in indexes[:min(qs_count, count)])
+    try:
+        return tuple(qs[i].specific for i in indexes[:min(qs_count, count)])
+    except:
+        return None
 
 
 def get_page(request):

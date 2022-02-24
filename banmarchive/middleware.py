@@ -19,6 +19,6 @@ def canonical_host_redirect(get_response):
         path = request.get_full_path()
         url = f'{protocol}://{settings.PRIMARY_HOST}{path}'
 
-        return HttpResponseRedirect(url, 301 if settings.REDIRECT_PERMANENT else 302)
+        return HttpResponseRedirect(url, status=301 if settings.REDIRECT_PERMANENT else 302)
 
     return middleware
