@@ -8,6 +8,7 @@ from wagtail.core import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
 from wagtail_transfer import urls as wagtailtransfer_urls
 
+from banmarchive import views
 from search import views as search_views
 from helpers import rest
 
@@ -18,6 +19,7 @@ urlpatterns = [
     path('admin/', include(wagtailadmin_urls)),
     path('documents/', include(wagtaildocs_urls)),
 
+    path('404/', views.handler404),
     path('search/', search_views.search, name='search'),
     path('api/', include(rest.get_urls())),
 ]
@@ -33,3 +35,5 @@ urlpatterns = urlpatterns + [
     re_path(r'^wagtail-transfer/', include(wagtailtransfer_urls)),
     path("", include(wagtail_urls)),
 ]
+
+handler404 = 'banmarchive.views.handler404'
