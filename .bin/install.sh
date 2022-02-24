@@ -1,5 +1,6 @@
 set -e
 
+poetry install
 poetry run python -m spacy download en_core_web_md
 
 poetry run python <<EOL

@@ -1,5 +1,5 @@
 ARG VARIANT=3
-FROM mcr.microsoft.com/vscode/devcontainers/python:0-3.9
+FROM --platform=linux/amd64 mcr.microsoft.com/vscode/devcontainers/python:0-3.9
 
 ENV PYTHONUNBUFFERED 1
 
@@ -20,9 +20,9 @@ RUN if [ "${INSTALL_NODE}" = "true" ]; then su vscode -c "umask 0002 && . /usr/l
 RUN curl https://raw.githubusercontent.com/commonknowledge/do-app-baseimage-django-node/439e8fecc8279266fcdd80942640000a1fb5a3ba/.bin/prepare.sh | /bin/bash
 
 # Install the project requirements and build.
+USER vscode
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -; \
-  echo "source $HOME/.poetry/env" >> "$HOME/.profile"; \
-  echo "source $HOME/.poetry/env" >> "$HOME/.bashrc"
+  echo "source /home/vscode/.poetry/env" >> "/home/vscode/.profile"; \
+  echo "source /home/vscode/.poetry/env" >> "/home/vscode/.bashrc"
 
-COPY pyproject.toml poetry.lock .
-RUN poetry install
+RUN bash -c "source /home/vscode/.poetry/env; poetry config cache-dir /workspaces/banmarchive/.poetry"

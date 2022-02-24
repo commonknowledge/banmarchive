@@ -15,9 +15,6 @@ services:
         USER_UID: 1000
         USER_GID: 1000
 
-    volumes:
-      - ..:/workspace:cached
-
     environment:
       - DATABASE_URL=postgres://postgres:postgres@db:5432/postgres
       - DEBUG=True
