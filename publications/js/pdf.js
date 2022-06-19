@@ -1,7 +1,7 @@
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/toolbar/lib/styles/index.css";
 
-import { Viewer, Worker } from "@react-pdf-viewer/core";
+import { Viewer, Worker, SpecialZoomLevel } from "@react-pdf-viewer/core";
 import { toolbarPlugin } from "@react-pdf-viewer/toolbar";
 
 import React from "react";
@@ -39,7 +39,11 @@ const ArticleViewer = ({ src }) => {
         </div>
 
         <div style={{ flex: 1, overflow: "hidden" }}>
-          <Viewer plugins={[toolbar]} fileUrl={src} />
+          <Viewer
+            defaultScale={SpecialZoomLevel.ActualSize}
+            plugins={[toolbar]}
+            fileUrl={src}
+          />
         </div>
       </div>
     </Worker>
