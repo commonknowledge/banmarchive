@@ -60,7 +60,7 @@ RUN curl -sSL https://install.python-poetry.org/ | python -; \
   echo "export PATH="/home/app/.local/bin:$PATH" >> "$HOME/.bashrc"
 
 COPY pyproject.toml poetry.lock .
-RUN bash -c "poetry install"
+RUN bash -c "/home/app/.local/bin/poetry install"
 
 ENV PYTHONUNBUFFERED=1 \
     DJANGO_SETTINGS_MODULE=banmarchive.settings.production \
