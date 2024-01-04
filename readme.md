@@ -6,7 +6,7 @@ Staging: https://banmarchive.commonknowledge.dev/
 
 ## Stack
 
-- Django (fullstack django app, no js frontend)
+- Django (fullstack django app, no Javascript frontend)
 - Bootstrap (css an' stuff)
 - Wagtail (CMS, administration, editor workflows and storage)
 - Webpack (asset pipeline)
