@@ -53,6 +53,7 @@ jobs:
           mkdir -p artifacts
           docker run --user=0 --mount type=bind,src=$(pwd)/artifacts,dst=/app/artifacts --entrypoint=/bin/cp "ghcr.io/${{ github.repository_owner }}/banmarchive:${{ github.sha }}" -r static artifacts
           touch requirements.txt
+          touch Aptfile
           git add -A
           git commit -m "Deploy ${{ github.sha }}"
           git push origin deploys
