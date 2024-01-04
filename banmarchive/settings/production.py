@@ -2,6 +2,8 @@ import urllib3
 from .base import *
 from urllib.parse import urlparse
 
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 DEBUG = False
 SECRET_KEY = os.getenv('SECRET_KEY')
 BASE_URL = re.sub(r'/$', '', os.getenv('BASE_URL', ''))
