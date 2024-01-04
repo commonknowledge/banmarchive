@@ -53,17 +53,18 @@ RUN chown app:app /app
 RUN mkdir -p /home/app
 RUN chown app:app /home/app
 USER app
+
 # Install the project requirements and build.
 RUN curl -sSL https://install.python-poetry.org/ | python -; \
-  echo "source $HOME/.poetry/env" >> "$HOME/.profile"; \
-  echo "source $HOME/.poetry/env" >> "$HOME/.bashrc"
+  echo "export PATH="/home/app/.local/bin:$PATH" >> "$HOME/.profile"; \
+  echo "export PATH="/home/app/.local/bin:$PATH" >> "$HOME/.bashrc"
 
 COPY pyproject.toml poetry.lock .
-RUN bash -c "source $HOME/.poetry/env; poetry install"
+RUN bash -c "poetry install"
 
 ENV PYTHONUNBUFFERED=1 \
     DJANGO_SETTINGS_MODULE=banmarchive.settings.production \
-    PATH=/home/app/.poetry/bin:$PATH \
+    PATH=/home/app/.local/bin:$PATH \
     PORT=80
 
 COPY --chown=app:app . .
