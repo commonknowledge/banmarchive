@@ -54,7 +54,7 @@ RUN mkdir -p /home/app
 RUN chown app:app /home/app
 USER app
 # Install the project requirements and build.
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -; \
+RUN curl -sSL https://install.python-poetry.org/ | python -; \
   echo "source $HOME/.poetry/env" >> "$HOME/.profile"; \
   echo "source $HOME/.poetry/env" >> "$HOME/.bashrc"
 
