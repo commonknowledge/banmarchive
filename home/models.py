@@ -25,7 +25,7 @@ class ParagraphsBlock(blocks.StructBlock):
         return ctx
 
     def side_images_with_links(self, images):
-        @django_cached_model('home.models.ParagraphsBlock.side_images_with_links.get_issue')
+        #@django_cached_model('home.models.ParagraphsBlock.side_images_with_links.get_issue')
         def get_issue(img):
             return (
                 MultiArticleIssue.objects.filter(cover_image=img).first()
