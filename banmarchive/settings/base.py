@@ -31,6 +31,13 @@ INSTALLED_APPS = [
     'search',
     'publications',
     'helpers',
+    'website_about',
+    'website_awards',
+    'website_data_migration',
+    'website_events',
+    'website_generic_page',
+    'website_home',
+    'website_news',
 
     'wagtail.contrib.forms',
     'wagtail.contrib.redirects',
@@ -72,7 +79,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     
     'wagtail.contrib.redirects.middleware.RedirectMiddleware',
-    'banmarchive.middleware.canonical_host_redirect',
 ]
 
 ROOT_URLCONF = 'banmarchive.urls'

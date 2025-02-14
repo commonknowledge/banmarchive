@@ -1,0 +1,32 @@
+{% extends 'website_base.html' %}
+
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block content %}
+
+  <h2>Upcoming events</h2>
+
+  {% if upcoming_events %}
+    {% for event in upcoming_events %}
+    <div>
+      <h2><a href="{% pageurl event %}">{{ event.title }}</a></h2>
+    </div>
+    {% endfor %}
+  {% else %}
+    <H3> No Events</H3>
+  {% endif %}
+
+  <h2>Past events</h2>
+
+  {% if past_events %}
+    {% for event in past_events %}
+      <div>
+        <p>{{ event.date }}{% if event.all_day %} - all day{% else %} from {{ event.start_time }} to {{ event.end_time }}{% endif %}</p>
+        <h2><a href="{% pageurl event %}">{{ event.title }}</a></h2>
+      {% endfor %}
+      </div>
+  {% else %}
+    <h3> No Events</h3>
+  {% endif %}
+
+{% endblock %}

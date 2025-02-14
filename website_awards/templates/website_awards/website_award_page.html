@@ -1,0 +1,27 @@
+{% extends 'website_base.html' %}
+
+{% load wagtailcore_tags wagtailimages_tags humanize %}
+
+{% block content %}
+
+  <h1>{{ page.title }}</h1>
+  <h4>{{ page.post_date|date:"jS F Y" }}</h4>
+  <p>{{ page.content }}</p>
+
+  {% if page.year %}
+    <p>Year awarded: {{ page.year }}</p>
+  {% endif %}
+  {% if page.amount_awarded %}
+    <p>Amount  awarded: £{{ page.amount_awarded|floatformat:2|intcomma }}</p>
+  {% endif %}
+  {% if page.award_type %}
+    <p>Award Type: {{ page.award_type|capfirst }}</p>
+  {% endif %}
+  {% if page.organisation %}
+    <p>Organisation: {{ page.organisation }}</p>
+  {% endif %}
+  {% if page.website %}
+    <p><a href="{{ page.website }}">{{ page.website }}</a></p>
+  {% endif %}
+
+{% endblock %}
