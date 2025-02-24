@@ -13,6 +13,7 @@ from wagtail.core.models import Page
 from django.contrib.postgres.indexes import GinIndex
 from django.db.models.signals import post_save
 from django.db import models
+from search.views import search
 
 import pdftotext
 
@@ -256,3 +257,8 @@ def summarize(text, limit):
             break
 
     return ' '.join(summary)
+
+
+class SearchPage(Page):
+    def serve(self, request):
+        return search(request)

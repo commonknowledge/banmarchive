@@ -22,7 +22,7 @@ from wagtail.core.models import Page
 from wagtail.search.models import Query
 
 from publications import models
-from search.models import get_nlp
+
 
 
 def search(request):
