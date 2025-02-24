@@ -1,0 +1,11 @@
+{% extends 'website_base.html' %}
+
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block content %}
+
+  <h1>{{ page.title }}</h1>
+  <p>{{ page.published_on|date:"jS F Y" }}</p>
+  <h3>{{ page.copy|richtext }}</h3>
+
+{% endblock %}

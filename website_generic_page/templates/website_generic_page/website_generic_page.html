@@ -1,0 +1,15 @@
+{% extends 'website_base.html' %}{% load wagtailcore_tags wagtailimages_tags %}
+{% block content %}
+<article class="generic-page">
+  <div class="generic-page__header">
+    <h2 class="generic-page__main-title">{{ page.title }}</h2>
+    {% if page.subtitle %}
+    <h3>{{ page.subtitle }}</h3>
+    {% endif %}
+  </div>
+  <div class="generic-page__content">
+    {{ page.copy|richtext }}
+  </div>
+</article>
+
+{% endblock %}

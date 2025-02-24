@@ -1,0 +1,19 @@
+{% extends 'website_base.html' %}
+
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block content %}
+
+  <form method="get" action="{{  search_url }}">
+    <input type="text" name="query" placeholder="Search news...">
+    <button type="submit">Search</button>
+  </form>
+
+  {% for news in all_news %}
+    <h2><a href="{% pageurl news %}">{{ news.title }}</a></h2>
+    <p>{{ news.published_on|date:"jS F Y" }}</p>
+    <p>{{ news.copy|striptags|truncatewords:50 }} <a href="{% pageurl news %}"> Continued</a></p>
+    <h4><a href="{% pageurl news %}">Read story</a></h4>
+  {% endfor %}
+
+{% endblock %}

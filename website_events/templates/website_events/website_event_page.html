@@ -1,0 +1,19 @@
+{% extends 'website_base.html' %}
+
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block content %}
+
+  <h2>{{ page.title }}</h2>
+
+  <p>{{ page.date|date:"l, F j, Y" }}{% if page.all_day %}, All Day{% else %}{{ page.start_time }} - {{ page.end_time }}{% endif %}</p>
+
+  {% if page.location %}{{ page.location }}{% endif %}
+
+  {{ page.copy|richtext }}
+
+  {% if page.get_parent %}
+    <a href="{{ page.get_parent.url }}">Back to {{ page.get_parent.title }}</a>
+  {% endif %}
+
+{% endblock %}

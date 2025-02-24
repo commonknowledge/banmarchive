@@ -1,0 +1,37 @@
+{% extends 'website_base.html' %}
+
+{% load wagtailcore_tags wagtailimages_tags humanize %}
+
+{% block content %}
+
+  <form method="get" action="{{ search_url }}">
+    <input type="text" name="query" placeholder="Search awards...">
+    <button type="submit">Search</button>
+  </form>
+
+  {% for post in posts %}
+    <h1><a href="{{ post.url }}">{{ post.title }}</a></h1>
+    <p>{{ post.content }}</p>
+    {% if post.website %}
+      <h5><a href="{{ post.website }}">{{ post.website }}</a></h5>
+    {% endif %}
+    {% if post.year %}
+      <p>Year awarded: {{ post.year }}</p>
+    {% endif %}
+    {% if post.amount_awarded %}
+      <p>Amount  awarded: £{{ post.amount_awarded|floatformat:2|intcomma }}</p>
+    {% endif %}
+    <a href="{{ post.url }}">View Profile</a>
+  {% endfor %}
+
+
+  {% if posts.has_previous %}
+    <a href="?page={{ posts.previous_page_number }}">Previous page</a>
+  {% endif %}
+  <span>Page {{ posts.number }} of {{ posts.paginator.num_pages }}</span>
+
+  {% if posts.has_next %}
+    <a href="?page={{ posts.next_page_number }}">Next page</a>
+  {% endif %}
+
+{% endblock %}
