@@ -6,15 +6,24 @@
       <img src="{% static 'img/banm-logo.svg' %}" alt="Amiel Melburn Archive homepage" />
     </a>
   </div>
-  <nav>
+  <div class="header__menu-toggle">
+    <button class="header__menu-button" aria-expanded="false" aria-controls="header__menu" aria-label="Toggle menu">
+      <svg viewBox="0 0 100 80" width="40" height="40" fill="#5E272B">
+        <rect width="100" height="10"></rect>
+        <rect y="30" width="100" height="10"></rect>
+        <rect y="60" width="100" height="10"></rect>
+      </svg>
+    </button>
+  </div>
+  <nav class="nav">
     <ul class="header__menu">
       {% get_navigation_pages as nav_pages %}
       {% for page in nav_pages %}
-      <li>
+      <li class="header__menu-item">
         <a href="{{ page.url }}">{{ page.title }}</a>
 
         {% if page.children %}
-        <ul>
+        <ul class="header__submenu">
           {% for child in page.children %}
           <li><a href="{{ child.url }}">{{ child.title }}</a></li>
           {% endfor %}
