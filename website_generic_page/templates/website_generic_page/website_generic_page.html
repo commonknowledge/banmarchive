@@ -1,14 +1,18 @@
-{% extends 'website_base.html' %}{% load wagtailcore_tags wagtailimages_tags %}
+{% extends 'website_base.html' %}
+{% load wagtailcore_tags wagtailimages_tags %}
 {% block content %}
 <article class="generic-page">
-  <div class="generic-page__header">
-    <h2 class="generic-page__main-title">{{ page.title }}</h2>
-    {% if page.subtitle %}
-    <h3>{{ page.subtitle }}</h3>
-    {% endif %}
+  <div class="generic-page__hero">
+    {% image page.hero_image fill-1140x210 %}
+    <h1>{{ page.title }}</h1>
   </div>
-  <div class="generic-page__content">
-    {{ page.copy|richtext }}
+  <div class="generic-page__inner">
+    <div class="generic-page__header">
+      <h2 class="generic-page__main-title">{{ page.subtitle }}</h2>
+    </div>
+    <div class="generic-page__content">
+      {{ page.copy|richtext }}
+    </div>
   </div>
 </article>
 

@@ -3,11 +3,19 @@
 {% load wagtailcore_tags wagtailimages_tags %}
 
 {% block content %}
-
-  <h1>{{ page.title }}</h1>
-  <h3>{{ page.subtitle }}</h3>
-  <div>{{ page.copy|richtext }}</div>
-
-  <h5><a href="{{ page.get_about_page.url }}">Learn more</a></h5>
-
+<article class="generic-page">
+  <div class="generic-page__hero generic-page__hero--home">
+    {% image page.hero_image fill-1140x380 %}
+    <h1>{{ page.title }}</h1>
+  </div>
+  <div class="generic-page__inner">
+    <div class="generic-page__header">
+      <h2 class="generic-page__main-title">{{ page.subtitle }}</h2>
+    </div>
+    <div class="generic-page__content generic-page__content--home">
+      {{ page.copy|richtext }}
+      <div class="learn-more-container"><a href="{{ page.get_about_page.url }}">Learn more</a></div>
+    </div>
+  </div>
+</article>
 {% endblock %}

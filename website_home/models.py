@@ -5,9 +5,10 @@ from wagtail.core.fields import RichTextField
 from wagtail.admin.edit_handlers import FieldPanel
 
 from website_about.models import WebsiteAboutIndexPage
+from website_generic_page.models import PageWithHeroImageMixin
 
 
-class WebsiteHomePage(Page):
+class WebsiteHomePage(PageWithHeroImageMixin):
     max_count = 1
     subtitle = models.CharField(
         max_length=200,
@@ -46,7 +47,7 @@ of the Trust’s remit."
         "website_generic_page.WebsiteGenericPage",
     ]
 
-    content_panels = Page.content_panels + [
+    content_panels = PageWithHeroImageMixin.content_panels + [
         FieldPanel("subtitle"),
         FieldPanel(
             "copy",
