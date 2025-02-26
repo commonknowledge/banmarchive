@@ -1,11 +1,22 @@
 {% extends 'website_base.html' %}
-
 {% load wagtailcore_tags wagtailimages_tags %}
-
 {% block content %}
-
-  <h1>{{ page.title }}</h1>
-  <p>{{ page.published_on|date:"jS F Y" }}</p>
-  <h3>{{ page.copy|richtext }}</h3>
+<article class="generic-page">
+  <div class="generic-page__hero">
+    {% image page.hero_image fill-1140x210 %}
+    <h1>News</h1>
+  </div>
+  <div class="generic-page__inner">
+    <div class="generic-page__header">
+      <h2 class="generic-page__main-title">{{ page.title }}</h2>
+      <p>{{ page.published_on|date:"jS F Y" }}</p>
+    </div>
+    <div class="generic-page__content">
+      {% block page_content %}
+      {{ page.copy|richtext }}
+      {% endblock %}
+    </div>
+  </div>
+</article>
 
 {% endblock %}

@@ -1,19 +1,13 @@
-{% extends 'website_base.html' %}
+{% extends 'website_generic_page/website_generic_page.html' %}
+{% load wagtailcore_tags %}
 
-{% load wagtailcore_tags wagtailimages_tags %}
+{% block page_title %}Events{% endblock %}
 
-{% block content %}
+{% block page_subtitle %}{{ page.title }}{% endblock %}
 
-  <h2>{{ page.title }}</h2>
-
+{% block page_content %}
   <p>{{ page.date|date:"l, F j, Y" }}{% if page.all_day %}, All Day{% else %}{{ page.start_time }} - {{ page.end_time }}{% endif %}</p>
-
   {% if page.location %}{{ page.location }}{% endif %}
-
   {{ page.copy|richtext }}
-
-  {% if page.get_parent %}
-    <a href="{{ page.get_parent.url }}">Back to {{ page.get_parent.title }}</a>
-  {% endif %}
 
 {% endblock %}

@@ -4,16 +4,39 @@
 
 {% block content %}
 
-  <form method="get" action="{{  search_url }}">
-    <input type="text" name="query" placeholder="Search news...">
-    <button type="submit">Search</button>
-  </form>
+<article class="generic-page">
+  <div class="generic-page__hero">
+    {% image page.hero_image fill-1140x210 %}
+    <h1>{{ page.title }}</h1>
+  </div>
+  <div class="generic-page__inner generic-page__inner--list">
+    <div class="generic-page__header">
+      <form class="search-form" method="get" action="{{ search_url }}">
+        <div class="search-form__title">Search news</div>
+        <div class="search-form__input-group">
+          <input type="text" name="query" placeholder="Search" class="search-form__input">
+          <button type="submit" class="search-form__submit">Search</button>
+        </div>
+      </form>
+    </div>
+    <div class="generic-page__content">
+      <div class="article-list">
+      {% for news in all_news %}
+        <div class="article-list-entry">
+          <div class="article-list-entry__text">
+            <div class="article-list-entry__title"><a href="{% pageurl news %}">{{ news.title }}</a></div>
+            <p class="article-list-entry__content">{{ news.copy|striptags|truncatewords:50 }} <a href="{% pageurl news %}"> Continued</a></p>
+          </div>
+          <p class="article-list-entry__date">{{ news.published_on|date:"jS F Y" }}</p>
+          <div class="article-list-entry__footer">
+            <a class="article-list-entry__footer-link" href="{% pageurl news %}">Read story</a>
+          </div>
+        </div>
+      {% endfor %}
+      </div>
+    </div>
+  </div>
+</article>
 
-  {% for news in all_news %}
-    <h2><a href="{% pageurl news %}">{{ news.title }}</a></h2>
-    <p>{{ news.published_on|date:"jS F Y" }}</p>
-    <p>{{ news.copy|striptags|truncatewords:50 }} <a href="{% pageurl news %}"> Continued</a></p>
-    <h4><a href="{% pageurl news %}">Read story</a></h4>
-  {% endfor %}
 
 {% endblock %}
