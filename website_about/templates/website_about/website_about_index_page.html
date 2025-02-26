@@ -1,21 +1,12 @@
-{% extends 'website_base.html' %}
+{% extends 'website_generic_page/website_generic_page.html' %}
+{% load wagtailcore_tags %}
 
-{% load wagtailcore_tags wagtailimages_tags %}
+{% block page_content %}
+  {{ page.copy|richtext }}
 
-{% block content %}
-
-  <article class="generic-page">
-    <div class="generic-page__header">
-      <h2 class="generic-page__main-title">{{ page.subtitle }}</h2>
-    </div>
-    <div class="generic-page__content">
-      {{ page.copy|richtext }}
-
-      {% for section in page.get_about_subpages %}
-      <ul>
-        <li><a href="{% pageurl section %}">{{ section.title }}</a></li>
-      </ul>
-      {% endfor %}
-    </div>
-  </article>
+  {% for section in page.get_about_subpages %}
+  <ul>
+    <li><a href="{% pageurl section %}">{{ section.title }}</a></li>
+  </ul>
+  {% endfor %}
 {% endblock %}

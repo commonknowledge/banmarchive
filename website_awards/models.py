@@ -11,6 +11,8 @@ from wagtail.admin.edit_handlers import FieldPanel, MultiFieldPanel
 from wagtail.core.fields import RichTextField
 from wagtail.search import index
 
+from website_generic_page.models import PageWithHeroImageMixin
+
 
 class WebsiteAwardsSearch(Page):
     max_count = 1
@@ -46,7 +48,7 @@ class WebsiteAwardsSearch(Page):
         )
 
 
-class WebsiteAwardsIndexPage(Page):
+class WebsiteAwardsIndexPage(PageWithHeroImageMixin):
     max_count = 1
 
     parent_page_types = ["website_home.WebsiteHomePage"]
@@ -114,6 +116,10 @@ class WebsiteAwardPage(Page):
         null=True,
         blank=True,
     )
+
+    @property
+    def hero_image(self):
+        return self.get_parent().specific.hero_image
 
     search_fields = Page.search_fields + [
         index.SearchField("title"),

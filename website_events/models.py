@@ -6,8 +6,10 @@ from wagtail.core.models import Page
 from wagtail.admin.edit_handlers import FieldPanel, MultiFieldPanel
 from wagtail.core.fields import RichTextField
 
+from website_generic_page.models import PageWithHeroImageMixin
 
-class WebsiteEventIndexPage(Page):
+
+class WebsiteEventIndexPage(PageWithHeroImageMixin):
     max_count = 1
 
     parent_page_types = ["website_home.WebsiteHomePage"]
@@ -56,6 +58,10 @@ class WebsiteEventPage(Page):
     start_time = models.TimeField(null=True, blank=True)
     end_time = models.TimeField(null=True, blank=True)
     all_day = models.BooleanField(default=False)
+
+    @property
+    def hero_image(self):
+        return self.get_parent().specific.hero_image
 
     parent_page_types = ["website_events.WebsiteEventIndexPage"]
     subpage_types = []

@@ -6,8 +6,10 @@ from wagtail.search import index
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.shortcuts import render
 
+from website_generic_page.models import PageWithHeroImageMixin
 
-class WebsiteNewsSearch(Page):
+
+class WebsiteNewsSearch(PageWithHeroImageMixin):
     max_count = 1
     copy = models.CharField(
         max_length=400,
@@ -18,7 +20,7 @@ class WebsiteNewsSearch(Page):
     parent_page_types = ["website_home.WebsiteHomePage"]
     subpage_types = []
 
-    content_panels = Page.content_panels + [
+    content_panels = PageWithHeroImageMixin.content_panels + [
         FieldPanel("copy"),
     ]
 
@@ -41,14 +43,14 @@ class WebsiteNewsSearch(Page):
         )
 
 
-class WebsiteNewsIndexPage(Page):
+class WebsiteNewsIndexPage(PageWithHeroImageMixin):
     max_count = 1
     subtitle = models.CharField(max_length=200, blank=True, default="")
 
     parent_page_types = ["website_home.WebsiteHomePage"]
     subpage_types = ["website_news.WebsiteNewsPage"]
 
-    content_panels = Page.content_panels + [
+    content_panels = PageWithHeroImageMixin.content_panels + [
         FieldPanel("subtitle"),
     ]
 
@@ -84,6 +86,10 @@ class WebsiteNewsPage(Page):
         index.SearchField("title"),
         index.SearchField("copy"),
     ]
+
+    @property
+    def hero_image(self):
+        return self.get_parent().specific.hero_image
 
     content_panels = Page.content_panels + [
         FieldPanel("copy"),
