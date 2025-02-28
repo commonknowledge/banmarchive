@@ -1,5 +1,5 @@
 {% extends 'website_base.html' %}
-{% load wagtailcore_tags wagtailimages_tags %}
+{% load wagtailcore_tags wagtailembeds_tags wagtailimages_tags %}
 {% block content %}
 <article class="generic-page">
   <div class="generic-page__hero">
@@ -14,6 +14,11 @@
     <div class="generic-page__content">
       {% block page_content %}
       {{ page.copy|richtext }}
+
+      {% if page.embed_html %}
+        {{ page.embed_html }}
+      {% endif %}
+
       {% endblock %}
     </div>
   </div>

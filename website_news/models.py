@@ -1,7 +1,8 @@
 from django.db import models
 from wagtail.core.models import Page
-from wagtail.admin.edit_handlers import FieldPanel
-from wagtail.core.fields import RichTextField
+from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
+from wagtail.core.fields import RichTextField, StreamField
+from wagtail.core.blocks import RawHTMLBlock
 from wagtail.search import index
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.shortcuts import render
@@ -78,6 +79,18 @@ class WebsiteNewsIndexPage(PageWithHeroImageMixin):
 class WebsiteNewsPage(Page):
     copy = RichTextField()
     published_on = models.DateField()
+    embed_html = StreamField(
+        [
+            (
+                "html",
+                RawHTMLBlock(
+                    help_text="Be careful when using custom embeds. \
+They might break the page if not inserted correctly."
+                ),
+            ),
+        ],
+        blank=True,
+    )
 
     parent_page_types = ["website_news.WebsiteNewsIndexPage"]
     subpage_types = []
@@ -93,5 +106,6 @@ class WebsiteNewsPage(Page):
 
     content_panels = Page.content_panels + [
         FieldPanel("copy"),
+        StreamFieldPanel("embed_html"),
         FieldPanel("published_on"),
     ]
