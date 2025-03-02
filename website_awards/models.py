@@ -44,7 +44,7 @@ class WebsiteAwardsSearch(Page):
                 "search_query": search_query,
                 "posts": posts,
                 "search_count": results.count(),
-                "search_url": self.url,
+                "search_page": self,
             },
         )
 
@@ -71,12 +71,8 @@ class WebsiteAwardsIndexPage(PageWithHeroImageMixin):
         except EmptyPage:
             posts = paginator.page(paginator.num_pages)
         awards_search = WebsiteAwardsSearch.objects.first() or None
-        if awards_search:
-            search_url = awards_search.url
-        else:
-            search_url = "#"
         context["posts"] = posts
-        context["search_url"] = search_url
+        context["search_page"] = awards_search
         return context
 
 
