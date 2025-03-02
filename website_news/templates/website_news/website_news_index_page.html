@@ -14,13 +14,20 @@
       <form class="search-form" method="get" action="{{ search_url }}">
         <div class="search-form__title">Search news</div>
         <div class="search-form__input-group">
-          <input type="text" name="query" placeholder="Search" class="search-form__input">
+          <input type="text" name="query" placeholder="Search" class="search-form__input" value="{{ search_query }}">
           <button type="submit" class="search-form__submit">Search</button>
         </div>
       </form>
     </div>
     <div class="generic-page__content">
       <div class="article-list">
+      {% if search_query %}
+        {% if all_news %}
+          <p>Search results for <b>'{{ search_query }}'</b>:</p>
+        {% else %}
+          <p>No news found for <b>'{{ search_query }}'</b></p>
+        {% endif %}
+      {% endif %}
       {% for news in all_news %}
         <div class="article-list-entry">
           <div class="article-list-entry__text">
@@ -36,10 +43,10 @@
       </div>
       <div class="pagination">
         {% if all_news.has_previous %}
-        <a href="?page={{ all_news.previous_page_number }}" class="pagination__link pagination__link--previous">Previous page</a>
+        <a href="?page={{ all_news.previous_page_number }}{% if search_query %}&query={{search_query}}{% endif %}" class="pagination__link pagination__link--previous">Previous page</a>
         {% endif %}
         {% if all_news.has_next %}
-        <a href="?page={{ all_news.next_page_number }}" class="pagination__link pagination__link--next">Next page</a>
+        <a href="?page={{ all_news.next_page_number }}{% if search_query %}&query={{search_query}}{% endif %}" class="pagination__link pagination__link--next">Next page</a>
         {% endif %}
       </div>
     </div>

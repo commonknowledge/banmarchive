@@ -9,20 +9,11 @@ from django.shortcuts import render
 from website_generic_page.models import PageWithHeroImageMixin
 
 
-class WebsiteNewsSearch(PageWithHeroImageMixin):
+class WebsiteNewsSearch(Page):
     max_count = 1
-    copy = models.CharField(
-        max_length=400,
-        null=True,
-        blank=True,
-    )
 
     parent_page_types = ["website_home.WebsiteHomePage"]
     subpage_types = []
-
-    content_panels = PageWithHeroImageMixin.content_panels + [
-        FieldPanel("copy"),
-    ]
 
     def serve(self, request):
         search_query = request.GET.get("query", "")
@@ -32,13 +23,25 @@ class WebsiteNewsSearch(PageWithHeroImageMixin):
             else WebsiteNewsPage.objects.none()
         )
 
+        paginator = Paginator(results, 10)
+        page = request.GET.get("page")
+        try:
+            posts = paginator.page(page)
+        except PageNotAnInteger:
+            posts = paginator.page(1)
+        except EmptyPage:
+            posts = paginator.page(paginator.num_pages)
+
+        news_index_page = WebsiteNewsIndexPage.objects.first()
+
         return render(
             request,
-            "website_news/news_search_results.html",
+            "website_news/website_news_index_page.html",
             {
+                "page": news_index_page,
                 "search_query": search_query,
-                "results": results,
-                "copy": self.copy,
+                "all_news": posts,
+                "search_url": self.url,
             },
         )
 

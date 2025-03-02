@@ -1,14 +1,11 @@
 from datetime import date
 from django.db import models
 from django import forms
-from django.core.exceptions import ValidationError
-from django.utils.html import format_html
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.shortcuts import render
 
 from wagtail.core.models import Page
-from wagtail.admin.edit_handlers import FieldPanel, MultiFieldPanel
-from wagtail.core.fields import RichTextField
+from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.search import index
 
 from website_generic_page.models import PageWithHeroImageMixin
@@ -16,18 +13,9 @@ from website_generic_page.models import PageWithHeroImageMixin
 
 class WebsiteAwardsSearch(Page):
     max_count = 1
-    copy = models.CharField(
-        max_length=400,
-        null=True,
-        blank=True,
-    )
 
     parent_page_types = ["website_home.WebsiteHomePage"]
     subpage_types = []
-
-    content_panels = Page.content_panels + [
-        FieldPanel("copy"),
-    ]
 
     def serve(self, request):
         search_query = request.GET.get("query", "")
@@ -37,13 +25,26 @@ class WebsiteAwardsSearch(Page):
             else WebsiteAwardPage.objects.none()
         )
 
+        paginator = Paginator(results, 10)
+        page = request.GET.get("page")
+        try:
+            posts = paginator.page(page)
+        except PageNotAnInteger:
+            posts = paginator.page(1)
+        except EmptyPage:
+            posts = paginator.page(paginator.num_pages)
+
+        index_page = WebsiteAwardsIndexPage.objects.first()
+
         return render(
             request,
-            "website_awards/awards_search_results.html",
+            "website_awards/website_awards_index_page.html",
             {
+                "page": index_page,
                 "search_query": search_query,
-                "results": results,
-                "copy": self.copy,
+                "posts": posts,
+                "search_count": results.count(),
+                "search_url": self.url,
             },
         )
 
