@@ -7,22 +7,22 @@
 
 {% block page_header %}
   <div class="award-details">
-    <h4>{{ page.post_date|date:"jS F Y" }}</h4>
+    <div class="award-details__date">{{ page.post_date|date:"jS F Y" }}</div>
 
     {% if page.year %}
-      <p>Year awarded: {{ page.year }}</p>
+      <div>Year awarded: <b>{{ page.year }}</b></div>
     {% endif %}
     {% if page.amount_awarded %}
-      <p>Amount awarded: £{{ page.amount_awarded|floatformat:2| intcomma }}</p>
+      <div>Amount awarded: <b>£{{ page.amount_awarded|floatformat:2| intcomma }}</b></div>
     {% endif %}
     {% if page.award_type %}
-      <p>Award Type: {{ page.award_type|capfirst }}</p>
+      <div>Award Type: <b>{{ page.award_type|capfirst }}</b></div>
     {% endif %}
     {% if page.organisation %}
-      <p>Organisation: {{ page.organisation }}</p>
+      <div>Organisation: <b>{{ page.organisation }}</b></div>
     {% endif %}
     {% if page.website %}
-      <p><a href="{{ page.website }}">{{ page.website }}</a></p>
+      <div><a href="{{ page.website }}">{{ page.website }}</a></div>
     {% endif %}
   </div>
 {% endblock %}
