@@ -4,34 +4,52 @@
 
 {% block content %}
 
-  <form method="get" action="{{ search_url }}">
-    <input type="text" name="query" placeholder="Search awards...">
-    <button type="submit">Search</button>
-  </form>
-
-  {% for post in posts %}
-    <h1><a href="{{ post.url }}">{{ post.title }}</a></h1>
-    <p>{{ post.content }}</p>
-    {% if post.website %}
-      <h5><a href="{{ post.website }}">{{ post.website }}</a></h5>
-    {% endif %}
-    {% if post.year %}
-      <p>Year awarded: {{ post.year }}</p>
-    {% endif %}
-    {% if post.amount_awarded %}
-      <p>Amount  awarded: £{{ post.amount_awarded|floatformat:2|intcomma }}</p>
-    {% endif %}
-    <a href="{{ post.url }}">View Profile</a>
-  {% endfor %}
-
-
-  {% if posts.has_previous %}
-    <a href="?page={{ posts.previous_page_number }}">Previous page</a>
-  {% endif %}
-  <span>Page {{ posts.number }} of {{ posts.paginator.num_pages }}</span>
-
-  {% if posts.has_next %}
-    <a href="?page={{ posts.next_page_number }}">Next page</a>
-  {% endif %}
-
+<article class="generic-page">
+  <div class="generic-page__hero">
+    {% image page.hero_image fill-1140x210 %}
+    <h1>{{ page.title }}</h1>
+  </div>
+  <div class="generic-page__inner generic-page__inner--list">
+    <div class="generic-page__header">
+      <form class="search-form" method="get" action="{{ search_url }}">
+        <div class="search-form__title">Search awards</div>
+        <div class="search-form__input-group">
+          <input type="text" name="query" placeholder="Search" class="search-form__input">
+          <button type="submit" class="search-form__submit">Search</button>
+        </div>
+      </form>
+    </div>
+    <div class="generic-page__content">
+      <div class="article-list">
+        {% for post in posts %}
+        <div class="article-list-entry">
+          <div class="article-list-entry__text">
+            <div class="article-list-entry__title"><a href="{% pageurl post %}">{{ post.title }}</a></div>
+            <p class="article-list-entry__content">{{ post.content }}</p>
+          </div>
+          <div class="article-list-entry__award-details">
+            {% if post.year %}
+            <div>Year awarded: <b>{{ post.year }}</b></div>
+            {% endif %}
+            {% if post.amount_awarded %}
+            <div>Amount awarded: <b>£{{ post.amount_awarded|floatformat:2|intcomma }}</b></div>
+            {% endif %}
+          </div>
+          <div class="article-list-entry__footer">
+            <a class="article-list-entry__footer-link" href="{% pageurl post %}">View profile</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="pagination">
+        {% if posts.has_previous %}
+        <a href="?page={{ posts.previous_page_number }}" class="pagination__link pagination__link--previous">Previous page</a>
+        {% endif %}
+        {% if posts.has_next %}
+        <a href="?page={{ posts.next_page_number }}" class="pagination__link pagination__link--next">Next page</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</article>
 {% endblock %}
