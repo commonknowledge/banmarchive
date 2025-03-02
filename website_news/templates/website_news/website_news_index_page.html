@@ -11,7 +11,7 @@
   </div>
   <div class="generic-page__inner generic-page__inner--list">
     <div class="generic-page__header">
-      <form class="search-form" method="get" action="{{ search_url }}">
+      <form class="search-form" method="get" action="{% pageurl search_page %}">
         <div class="search-form__title">Search news</div>
         <div class="search-form__input-group">
           <input type="text" name="query" placeholder="Search" class="search-form__input" value="{{ search_query }}">

@@ -41,7 +41,7 @@ class WebsiteNewsSearch(Page):
                 "page": news_index_page,
                 "search_query": search_query,
                 "all_news": posts,
-                "search_url": self.url,
+                "search_page": self,
             },
         )
 
@@ -69,12 +69,8 @@ class WebsiteNewsIndexPage(PageWithHeroImageMixin):
         except EmptyPage:
             posts = paginator.page(paginator.num_pages)
         news_search = WebsiteNewsSearch.objects.first() or None
-        if news_search:
-            search_url = news_search.url
-        else:
-            search_url = "#"
         context["all_news"] = posts
-        context["search_url"] = search_url
+        context["search_page"] = news_search
         return context
 
 
