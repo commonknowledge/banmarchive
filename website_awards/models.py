@@ -5,6 +5,7 @@ from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.shortcuts import render
 
 from wagtail.core.models import Page
+from wagtail.core.fields import RichTextField
 from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.search import index
 
@@ -85,7 +86,7 @@ class WebsiteAwardPage(Page):
         ("ninafishman", "Nina Fishman Translation Award"),
         ("major", "Major Award"),
     ]
-    content = models.TextField(
+    content = RichTextField(
         null=True,
         blank=True,
     )

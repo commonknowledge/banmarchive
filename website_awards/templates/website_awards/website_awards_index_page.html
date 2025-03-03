@@ -32,7 +32,22 @@
         <div class="article-list-entry">
           <div class="article-list-entry__text">
             <div class="article-list-entry__title"><a href="{% pageurl post %}">{{ post.title }}</a></div>
-            <p class="article-list-entry__content">{{ post.content }}</p>
+            <p class="article-list-entry__content">
+            {% with post.content|richtext as full_text %}
+              {% with full_text|striptags as plain_text %}
+                {% with plain_text|wordcount as word_count %}
+                  {% if word_count > 55 %}
+                    {{ plain_text|truncatewords:55 }}... <a href="{% pageurl post %}">Continued</a>
+                  {% else %}
+                    {{ full_text }}
+                  {% endif %}
+                {% endwith %}
+              {% endwith %}
+            {% endwith %}
+            </p>
+            {% if post.website %}
+              <div><a href="{{ post.website }}">{{ post.website }}</a></div>
+            {% endif %}
           </div>
           <div class="article-list-entry__award-details">
             {% if post.year %}
