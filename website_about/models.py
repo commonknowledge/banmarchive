@@ -27,7 +27,7 @@ class WebsiteAboutIndexPage(PageWithHeroImageMixin):
 
 class WebsiteAboutSectionPage(PageWithHeroImageMixin):
     copy = RichTextField()
-
+    subtitle = models.CharField(max_length=100, blank=True, null=True)
     parent_page_types = ["website_about.WebsiteAboutIndexPage"]
     subpage_types = []
 
