@@ -24,7 +24,12 @@ class PageWithHeroImageMixin(Page):
 
 class WebsiteGenericPage(PageWithHeroImageMixin):
     subtitle = models.CharField(max_length=200, blank=True, null=True)
-    copy = RichTextField()
+    copy = RichTextField(blank=True, null=True)
+    embed_code = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Embed code for newsletter, video embeds or other media.",
+    )
 
     parent_page_types = ["website_home.WebsiteHomePage"]
     subpage_types = []
@@ -32,4 +37,5 @@ class WebsiteGenericPage(PageWithHeroImageMixin):
     content_panels = PageWithHeroImageMixin.content_panels + [
         FieldPanel("subtitle"),
         FieldPanel("copy"),
+        FieldPanel("embed_code"),
     ]
