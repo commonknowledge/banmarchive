@@ -2,6 +2,9 @@
 {% load wagtailcore_tags %}
 
 {% block page_content %}
+
+  {{ page.subtitle }}
+
   {{ page.copy|richtext }}
 
   {% for section in page.get_about_subpages %}
