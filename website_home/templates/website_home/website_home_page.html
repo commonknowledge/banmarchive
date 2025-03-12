@@ -17,5 +17,12 @@
       <div class="learn-more-container"><a href="{{ page.get_about_page.url }}">Learn more</a></div>
     </div>
   </div>
+  <div class="generic-page__bottom">
+    <div class="generic-page__teasers">
+      {% for teaser in page.teasers %}
+        {{ teaser }}
+      {% endfor %}
+    </div>
+  </div>
 </article>
 {% endblock %}
