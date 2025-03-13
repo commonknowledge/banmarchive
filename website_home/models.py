@@ -1,8 +1,9 @@
 from django.db import models
 from django import forms
 from wagtail.core.models import Page
-from wagtail.core.fields import RichTextField
-from wagtail.admin.edit_handlers import FieldPanel
+from wagtail.core.fields import RichTextField, StreamField
+from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
+from .blocks import HomePageTeaserBlock
 
 from website_about.models import WebsiteAboutIndexPage
 from website_generic_page.models import PageWithHeroImageMixin
@@ -30,6 +31,14 @@ for projects which it considers fall within the scope \
 of the Trust’s remit."
     )
 
+    teasers = StreamField(
+        [
+            ("teaser", HomePageTeaserBlock()),
+        ],
+        blank=True,
+        max_num=4,
+    )
+
     def get_about_page(self):
         about_page = WebsiteAboutIndexPage.objects.all().first()
         if about_page:
@@ -53,4 +62,5 @@ of the Trust’s remit."
             "copy",
             help_text="Enter detailed content here.",
         ),
+        StreamFieldPanel("teasers"),
     ]
