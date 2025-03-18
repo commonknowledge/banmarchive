@@ -1,5 +1,5 @@
 {% load wagtailcore_tags %}
-<div class="home-page-teaser">
+<div class="home-page-teaser{% if self.highlighted %} home-page-teaser--highlighted{% endif %}">
   <div class="home-page-teaser__label">{{ self.label }}</div>
   <h3 class="home-page-teaser__title">{{ self.title }}</h3>
   <div class="home-page-teaser__description">{{ self.description }}</div>

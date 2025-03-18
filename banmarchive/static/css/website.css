@@ -105,6 +105,14 @@ p {
 .header__menu-item a {
   text-decoration: none;
   color: var(--text-color);
+  padding: 1em;
+  display: block;
+  transition: background 0.125s;
+}
+
+.header__menu-item .header__submenu a:hover {
+  text-decoration: none;
+  background: white;
 }
 
 .header__menu a:hover {
@@ -176,8 +184,9 @@ p {
 .header__submenu {
   list-style-type: none;
   background: #ecf0f1;
-  padding: 1rem;
+  padding: 0;
   display: none;
+  border: 1px solid #ccc;
 }
 
 .nav {
@@ -419,7 +428,12 @@ p {
   background-color: var(--eastern-blue);
 }
 
-.home-page-teaser:hover {
+.home-page-teaser--highlighted::after {
+  background-color: var(--brown);
+}
+
+.home-page-teaser:hover,
+.home-page-teaser--highlighted {
   color: white;
   background-color: var(--burgundy);
 }
@@ -437,7 +451,8 @@ p {
   text-transform: uppercase;
 }
 
-.home-page-teaser:hover .home-page-teaser__label {
+.home-page-teaser:hover .home-page-teaser__label,
+.home-page-teaser--highlighted .home-page-teaser__label {
   color: white;
 }
 

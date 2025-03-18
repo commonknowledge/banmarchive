@@ -8,6 +8,7 @@ class HomePageTeaserBlock(blocks.StructBlock):
     page = blocks.PageChooserBlock(required=False)
     external_link = blocks.URLBlock(required=False)
     call_to_action = blocks.CharBlock()
+    highlighted = blocks.BooleanBlock(required=False, default=False)
 
     class Meta:
         icon = "pick"
