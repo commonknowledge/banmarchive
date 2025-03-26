@@ -34,14 +34,6 @@ def get_navigation_pages():
             ],
         },
         {
-            "title": "Events",
-            "url": (
-                WebsiteEventIndexPage.objects.first().url
-                if WebsiteEventIndexPage.objects.exists()
-                else "#"
-            ),
-        },
-        {
             "title": "News",
             "url": (
                 WebsiteNewsIndexPage.objects.first().url
