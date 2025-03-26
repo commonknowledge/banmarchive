@@ -3,7 +3,7 @@
   <div class="home-page-teaser__label">{{ self.label }}</div>
   <h3 class="home-page-teaser__title">{{ self.title }}</h3>
   <div class="home-page-teaser__description">{{ self.description }}</div>
-  <a href="{% if self.page %}{% pageurl self.page %}{% else %}{{ self.link_url }}{% endif %}" class="home-page-teaser__link">
+  <a href="{% if self.page %}{% pageurl self.page %}{% else %}{{ self.external_link }}{% endif %}" class="home-page-teaser__link">
     <span class="home-page-teaser__link-text">{{ self.call_to_action }}</span>
   </a>
 </div>
