@@ -480,6 +480,14 @@ p {
   transform: translateY(100%);
 }
 
+iframe[src^="https://www.youtube.com"],
+iframe[src^="https://player.vimeo.com"]
+{
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+}
+
 @media (min-width: 768px) {
   .nav {
     display: flex;
