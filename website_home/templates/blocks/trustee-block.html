@@ -1,0 +1,28 @@
+{% load static wagtailcore_tags wagtailimages_tags %}
+
+<div class="trustee-item">
+  {% if self.image %}
+    <div class="trustee-item__image-container">
+      <picture>
+        {% image self.image original as image_jpg %}
+        <img src="{{ image_jpg.url }}"
+             alt="Photo of Trustee {{ self.name }}"
+             loading="lazy"
+             class="trustee-item__image" />
+      </picture>
+    </div>
+  {% endif %}
+
+  <div class="trustee-item__content">
+    <div class="trustee-item__info">
+      <span>
+        {% if self.role %}<b>{{ self.role }}</b> {% endif %}{{ self.name }}
+      </span>
+    </div>
+    {% if self.bio %}
+      <div class="trustee-item__bio">
+        {{ self.bio }}
+      </div>
+    {% endif %}
+  </div>
+</div>

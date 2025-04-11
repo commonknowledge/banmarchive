@@ -78,16 +78,14 @@ p {
   height: 10px;
   top: 20px;
   right: 1rem;
-  background-image: linear-gradient(
-    to bottom,
-    black 0,
-    black 2px,
-    transparent 2px,
-    transparent 7px,
-    black 7px,
-    black 9px,
-    transparent 9px
-  );
+  background-image: linear-gradient(to bottom,
+      black 0,
+      black 2px,
+      transparent 2px,
+      transparent 7px,
+      black 7px,
+      black 9px,
+      transparent 9px);
 
   background-size: 20px 10px;
   border: 10px solid transparent;
@@ -95,7 +93,7 @@ p {
   position: absolute;
 }
 
-.header__menu-item > a {
+.header__menu-item>a {
   position: relative;
   display: block;
   padding: 1.5rem 1rem;
@@ -496,8 +494,7 @@ p {
 }
 
 iframe[src^="https://www.youtube.com"],
-iframe[src^="https://player.vimeo.com"]
-{
+iframe[src^="https://player.vimeo.com"] {
   width: 100%;
   aspect-ratio: 16 / 9;
   height: auto;
@@ -525,7 +522,7 @@ iframe[src^="https://player.vimeo.com"]
     width: auto;
   }
 
-  .header__menu-item > a {
+  .header__menu-item>a {
     padding: 0;
     border-top: none;
   }
@@ -623,5 +620,74 @@ iframe[src^="https://player.vimeo.com"]
 
   .generic-page__teasers {
     grid-template-columns: 1fr 1fr 1fr 1fr;
+  }
+}
+
+.trustee-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2.5rem;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.trustee-item__image-container {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.trustee-item__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.trustee-item__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.trustee-item__info {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #0a2143;
+  margin-bottom: 0.5rem;
+}
+
+.trustee-item__info b {
+  font-weight: 700;
+  display: inline;
+  margin-right: 0.4rem;
+}
+
+.trustee-item__info span {
+  white-space: nowrap;
+}
+
+.trustee-item__bio {
+  color: #444;
+  font-size: 1rem;
+  line-height: 1.6;
+  width: 100%;
+}
+
+
+@media (max-width: 600px) {
+  .trustee-item {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .trustee-item__image-container {
+    margin: 0 auto 1rem;
+  }
+
+  .trustee-item__info b {
+    font-size: 1.125rem;
   }
 }
