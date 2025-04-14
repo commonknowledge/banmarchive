@@ -41,25 +41,13 @@ def search(request):
 
     # Search
     if search_query:
-        # highlighter = create_highlighter(search_query)
-        # qs = models.Article.objects.live()
-
-        # if scope is not None:
-        #     qs = qs.descendant_of(scope)
-
-        # search_results = qs.search(search_query)
-        # query = Query.get(search_query)
-
         highlighter = create_highlighter(search_query)
         qs = models.Article.objects.live()
 
         if scope is not None:
             qs = qs.descendant_of(scope)
 
-        search_backend = PatchedPostgresSearchBackend()
-        search_results = search_backend.search(
-            search_query, qs
-        )  # Use the patched backend
+        search_results = qs.search(search_query)
         query = Query.get(search_query)
 
         # Record hit
@@ -266,7 +254,6 @@ def advanced_search(request):
             if term["value"] and not term["bool"] == "NOT"
         ]
         highlighter = create_highlighter(*fulltext_terms)
-        search_backend = PatchedPostgresSearchBackend()
         search_results = (
             {
                 "highlight": get_search_highlight(
@@ -380,7 +367,7 @@ def get_advanced_search_term(match, value, publication):
         # For reference this is about 3x the number of hits for the phrase 'women' at launch.
         MAX_FULLTEXT_HITS = 3000
 
-        search_backend = PatchedPostgresSearchBackend()
+        backend = PatchedPostgresSearchBackend()
 
         for type in (models.Article, models.SimpleIssue):
             qs = type.objects.live()
@@ -398,38 +385,25 @@ def add_decade(prevdate):
     return date(prevdate.year + 10, prevdate.month, prevdate.day)
 
 
-class PatchedPostgresSearchQueryCompiler(PostgresSearchQueryCompiler):
-    """
-    Exact phrase matching is broken by the language configuration substituting stopwords, which although useful in
-    the general case, is not wanted for exact phrase matching.
-
-    Override the generation of postgres queries to not do stopword/synonym/etc substitution.
-    """
-
-    query_compiler_class = PostgresSearchQueryCompiler
-
-    def build_tsquery_content(self, query, config=None, invert=False):
-        if isinstance(query, Phrase):
-            return make_searchquery(query.query_string)
-        return super().build_tsquery_content(query, config=config, invert=invert)
-
-    #     query_compiler_class = PostgresSearchQueryCompiler
-
-    #     def build_tsquery_content(self, query, config=None, invert=False):
-    #         if isinstance(query, Phrase):
-    #             return make_searchquery(query.query_string)
-
-    #         return super().build_tsquery_content(query, config=config, invert=invert)
-
-    # query_compiler_class = PatchedPostgresSearchQueryCompiler
-
-
 class PatchedPostgresSearchBackend(PostgresSearchBackend):
-    # def __init__(self):
-    #     super().__init__({"SEARCH_CONFIG": "english"})
-
     def __init__(self):
         super().__init__({"SEARCH_CONFIG": "english"})
+
+    class PatchedPostgresSearchQueryCompiler(PostgresSearchQueryCompiler):
+        """
+        Exact phrase matching is broken by the language configuration substituting stopwords, which although useful in
+        the general case, is not wanted for exact phrase matching.
+
+        Override the generation of postgres queries to not do stopword/synonym/etc substitution.
+        """
+
+        query_compiler_class = PostgresSearchQueryCompiler
+
+        def build_tsquery_content(self, query, config=None, invert=False):
+            if isinstance(query, Phrase):
+                return make_searchquery(query.query_string)
+
+            return super().build_tsquery_content(query, config=config, invert=invert)
 
     query_compiler_class = PatchedPostgresSearchQueryCompiler
 
@@ -442,9 +416,7 @@ def make_searchquery(*terms):
     q = None
 
     for t in terms:
-        inner = f'"{t}"'
-        q = inner if q is None else q + " || " + inner
-        # inner = '(' + ' <-> '.join(t.split(' ')) + ')'
-        # q = inner if q is None else q + " || " + q
+        inner = "(" + " <-> ".join(t.split(" ")) + ")"
+        q = inner if q is None else q + " || " + q
 
     return SearchQuery(q, search_type="raw")

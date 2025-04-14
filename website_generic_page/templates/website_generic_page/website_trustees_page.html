@@ -20,12 +20,13 @@
         {% endif %}
       {% endblock %}
     </div>
-    <div>
-      {% for trustee in page.trustees %}
-        {% include_block trustee %}
-      {% endfor %}
-    </div>
   </div>
 </article>
+<div>
+  {% for trustee in page.trustees %}
+    {% include_block trustee %}
+  {% endfor %}
+</div>
+
 
 {% endblock %}
