@@ -14,7 +14,10 @@ class WebsiteAboutIndexPage(PageWithHeroImageMixin):
     copy = RichTextField()
 
     parent_page_types = ["website_home.WebsiteHomePage"]
-    subpage_types = ["website_about.WebsiteAboutSectionPage"]
+    subpage_types = [
+        "website_about.WebsiteAboutSectionPage",
+        "website_generic_page.WebsiteTrusteesPage",
+    ]
 
     content_panels = PageWithHeroImageMixin.content_panels + [
         FieldPanel("subtitle"),
@@ -28,7 +31,9 @@ class WebsiteAboutIndexPage(PageWithHeroImageMixin):
 class WebsiteAboutSectionPage(PageWithHeroImageMixin):
     copy = RichTextField()
 
-    parent_page_types = ["website_about.WebsiteAboutIndexPage"]
+    parent_page_types = [
+        "website_about.WebsiteAboutIndexPage",
+    ]
     subpage_types = []
 
     content_panels = PageWithHeroImageMixin.content_panels + [

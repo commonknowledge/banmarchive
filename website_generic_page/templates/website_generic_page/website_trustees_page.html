@@ -1,0 +1,8 @@
+{% extends 'website_generic_page/website_generic_page.html' %}
+{% load wagtailcore_tags wagtailimages_tags %}
+{% block page_content %}
+  {{ block.super }}
+  <div class="trustees-list">
+    {{ page.trustees }}
+  </div>
+{% endblock %}
