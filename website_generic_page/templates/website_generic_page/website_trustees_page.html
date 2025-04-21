@@ -1,32 +1,8 @@
-{% extends 'website_base.html' %}
+{% extends 'website_generic_page/website_generic_page.html' %}
 {% load wagtailcore_tags wagtailimages_tags %}
-{% block content %}
-<article class="generic-page">
-  <div class="generic-page__hero">
-    {% image page.hero_image fill-1140x210 %}
-    <h1>{% block page_title %}{{ page.title }}{% endblock %}</h1>
+{% block page_content %}
+  {{ block.super }}
+  <div class="trustees-list">
+    {{ page.trustees }}
   </div>
-  <div class="generic-page__inner">
-    <div class="generic-page__header">
-      <h2 class="generic-page__main-title">
-        {% block page_subtitle %}{% if page.subtitle %}{{ page.subtitle }}{% endif %}{% endblock %}
-      </h2>
-      {% block page_header %}{% endblock %}
-    </div>
-    <div class="generic-page__content">
-      {% block page_content %}
-        {% if page.copy %}
-          {{ page.copy|richtext }}
-        {% endif %}
-      {% endblock %}
-    </div>
-  </div>
-</article>
-<div>
-  {% for trustee in page.trustees %}
-    {% include_block trustee %}
-  {% endfor %}
-</div>
-
-
 {% endblock %}

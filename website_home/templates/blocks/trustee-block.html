@@ -4,7 +4,7 @@
   {% if self.image %}
     <div class="trustee-item__image-container">
       <picture>
-        {% image self.image original as image_jpg %}
+        {% image self.image fill-240x240 as image_jpg %}
         <img src="{{ image_jpg.url }}"
              alt="Photo of Trustee {{ self.name }}"
              loading="lazy"

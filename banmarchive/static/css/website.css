@@ -78,14 +78,16 @@ p {
   height: 10px;
   top: 20px;
   right: 1rem;
-  background-image: linear-gradient(to bottom,
-      black 0,
-      black 2px,
-      transparent 2px,
-      transparent 7px,
-      black 7px,
-      black 9px,
-      transparent 9px);
+  background-image: linear-gradient(
+    to bottom,
+    black 0,
+    black 2px,
+    transparent 2px,
+    transparent 7px,
+    black 7px,
+    black 9px,
+    transparent 9px
+  );
 
   background-size: 20px 10px;
   border: 10px solid transparent;
@@ -93,7 +95,7 @@ p {
   position: absolute;
 }
 
-.header__menu-item>a {
+.header__menu-item > a {
   position: relative;
   display: block;
   padding: 1.5rem 1rem;
@@ -494,7 +496,8 @@ p {
 }
 
 iframe[src^="https://www.youtube.com"],
-iframe[src^="https://player.vimeo.com"] {
+iframe[src^="https://player.vimeo.com"]
+{
   width: 100%;
   aspect-ratio: 16 / 9;
   height: auto;
@@ -522,7 +525,7 @@ iframe[src^="https://player.vimeo.com"] {
     width: auto;
   }
 
-  .header__menu-item>a {
+  .header__menu-item > a {
     padding: 0;
     border-top: none;
   }
@@ -623,12 +626,17 @@ iframe[src^="https://player.vimeo.com"] {
   }
 }
 
+.trustees-list {
+  margin: 2rem 0;
+}
+
 .trustee-item {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 2.5rem;
   align-items: center;
   margin-bottom: 2rem;
+  grid-template-columns: 1fr;
+  text-align: center;
+  gap: 0;
 }
 
 .trustee-item__image-container {
@@ -636,6 +644,8 @@ iframe[src^="https://player.vimeo.com"] {
   height: 120px;
   border-radius: 50%;
   overflow: hidden;
+  align-self: flex-start;
+  margin: 0 auto 1rem;
 }
 
 .trustee-item__image {
@@ -650,6 +660,7 @@ iframe[src^="https://player.vimeo.com"] {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-self: flex-start;
 }
 
 .trustee-item__info {
@@ -663,6 +674,7 @@ iframe[src^="https://player.vimeo.com"] {
   font-weight: 700;
   display: inline;
   margin-right: 0.4rem;
+  font-size: 1.125rem;
 }
 
 .trustee-item__info span {
@@ -672,22 +684,19 @@ iframe[src^="https://player.vimeo.com"] {
 .trustee-item__bio {
   color: #444;
   font-size: 1rem;
-  line-height: 1.6;
   width: 100%;
 }
 
-
-@media (max-width: 600px) {
+@media (min-width: 600px) {
   .trustee-item {
-    grid-template-columns: 1fr;
-    text-align: center;
+    grid-template-columns: auto 1fr;
+    gap: 2.5rem;
+    align-items: center;
+    margin-bottom: 2rem;
+    text-align: left;
   }
 
   .trustee-item__image-container {
-    margin: 0 auto 1rem;
-  }
-
-  .trustee-item__info b {
-    font-size: 1.125rem;
+    margin: 0;
   }
 }
