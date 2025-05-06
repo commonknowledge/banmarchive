@@ -49,7 +49,6 @@ of the Trust’s remit."
         "website_news.WebsiteNewsIndexPage",
         "website_news.WebsiteNewsPage",
         "website_about.WebsiteAboutIndexPage",
-        "website_events.WebsiteEventIndexPage",
         "website_awards.WebsiteAwardsIndexPage",
         "website_news.WebsiteNewsSearch",
         "website_awards.WebsiteAwardsSearch",

@@ -25,6 +25,9 @@
       <div><a href="{{ page.website }}">{{ page.website }}</a></div>
     {% endif %}
   </div>
+
+  {% include 'socialmedia_share.html' with page=page %}
+
 {% endblock %}
 
 {% block page_content %}

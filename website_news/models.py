@@ -77,6 +77,7 @@ class WebsiteNewsIndexPage(PageWithHeroImageMixin):
 
 class WebsiteNewsPage(Page):
     copy = RichTextField()
+    author = models.CharField(max_length=100, blank=True, null=True)
     published_on = models.DateField()
     embed_html = StreamField(
         [
@@ -105,6 +106,7 @@ They might break the page if not inserted correctly."
 
     content_panels = Page.content_panels + [
         FieldPanel("copy"),
+        FieldPanel("author"),
         StreamFieldPanel("embed_html"),
         FieldPanel("published_on"),
     ]
