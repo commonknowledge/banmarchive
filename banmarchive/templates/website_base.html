@@ -36,7 +36,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link type="text/css" href="{% static 'css/website.css' %}" rel="stylesheet" media="screen" />
+
+    {% include 'google_tag.html' %}
+
     {% block extra_css %}
 
     {% endblock %}
@@ -46,6 +50,7 @@
     {% include 'website_header.html' %}
 
     <main class="main">{% block content %}{% endblock %}</main>
+
     {% include 'website_footer.html' %}
     <script src="{% static 'js/website.js' %}"></script>
   </body>

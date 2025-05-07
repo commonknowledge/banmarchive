@@ -9,7 +9,9 @@
   <div class="generic-page__inner">
     <div class="generic-page__header">
       <h2 class="generic-page__main-title">{{ page.title }}</h2>
+      {% if page.author %}<h4>by {{ page.author }}</h4>{% endif %}
       <p>{{ page.published_on|date:"jS F Y" }}</p>
+      {% include 'socialmedia_share.html' with page=page %}
     </div>
     <div class="generic-page__content">
       {% block page_content %}
