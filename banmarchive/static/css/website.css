@@ -706,10 +706,10 @@ iframe[src^="https://player.vimeo.com"] {
 }
 
 .call-to-action-banner {
+  width: 50%;
   padding: 0.5rem 1rem;
   border: 1px solid #eee;
   position: relative;
-  width: 600px;
   background-color: white;
   margin: 0 auto;
   color: var(--text-color);
@@ -747,6 +747,12 @@ iframe[src^="https://player.vimeo.com"] {
   margin: 0;
   line-height: 1.2;
   transition: color 0.3s;
+}
+
+@media (max-width: 600px) {
+  .call-to-action-banner {
+    width: 100%;
+  }
 }
 
 
