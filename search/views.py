@@ -10,7 +10,6 @@ from wagtail.contrib.postgres_search.backend import (
     PostgresSearchQueryCompiler,
 )
 from helpers.content import get_page, safe_to_int
-from django.core import paginator
 
 from django.db.models.query_utils import Q
 from helpers.cache import django_cached
@@ -41,13 +40,14 @@ def search(request):
 
     # Search
     if search_query:
+        _filters, parsed_query_object = parse_query_string(search_query, operator="and")
         highlighter = create_highlighter(search_query)
         qs = models.Article.objects.live()
 
         if scope is not None:
             qs = qs.descendant_of(scope)
 
-        search_results = qs.search(search_query)
+        search_results = qs.search(parsed_query_object, partial_match=False)
         query = Query.get(search_query)
 
         # Record hit
@@ -119,7 +119,6 @@ def get_search_highlight(page, terms, highlighter, remove_partial=True):
     """
 
     if getattr(page, "text_content", "").strip():
-
         highlights_raw = (
             type(page)
             .objects.annotate(search_highlight=highlighter)
