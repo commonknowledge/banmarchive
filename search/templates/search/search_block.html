@@ -5,13 +5,12 @@
     {% endif %}
     <input {% if nolabel %}aria-label="Search query"{% endif %} {% if search_query %} value="{{search_query}}"{% endif %} id="search" type="text" name="query" class="form-control mt-1">
     <div class="d-md-none pt-2 text-secondary">
+      Putting two or more words in quotation marks will prompt a search for that exact phrase.
+      <br/>
       Example searches:
       <a class="d-inline-block ms-1" href="/search/?query=feminism">feminism</a>
-      <a class="d-inline-block ms-1" href="/search/?query=black+power">"black power"</a>
-      <a class="d-inline-block ms-1" href="/search/?query=stuart+hall">"stuart hall"</a>
-    </div>
-    <div class="mb-3 me-3">
-      Putting two or more words in quotation marks will prompt a search for that exact phrase.
+      <a class="d-inline-block ms-1" href="/search/?query=black+power">black power</a>
+      <a class="d-inline-block ms-1" href="/search/?query=stuart+hall">stuart hall</a>
     </div>
   </div>
 
